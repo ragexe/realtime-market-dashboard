@@ -1,1 +1,52 @@
-<p>dashboard works!</p>
+<section class="producer-bar" aria-label="Producer">
+  <div class="status" [attr.data-status]="status()">
+    <span class="status-dot"></span>
+    <span class="status-label">{{ status() }}</span>
+    <span class="run">Run #{{ runId() }}</span>
+  </div>
+
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  <button
+    mat-flat-button
+    type="button"
+    [disabled]="status() === 'error' || status() === 'starting'"
+    (click)="togglePause()"
+  >
+    {{ status() === 'paused' ? 'Resume' : 'Pause' }}
+  </button>
+</section>
+
+<section class="card">
+  <table class="market-table">
+    <thead>
+      <tr>
+        <th scope="col">Symbol</th>
+        <th scope="col" class="numeric">Last</th>
+        <th scope="col" class="numeric">Spread</th>
+        <th scope="col" class="numeric">Volume</th>
+        <th scope="col" class="numeric">VWAP</th>
+        <th scope="col" class="numeric">Imbalance</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (row of instruments(); track row.symbol) {
+        <tr>
+          <th scope="row">{{ row.symbol }}</th>
+          <td class="numeric">{{ row.lastPriceCents ?? '—' }}</td>
+          <td class="numeric">—</td>
+          <td class="numeric">{{ row.volume }}</td>
+          <td class="numeric">—</td>
+          <td class="numeric">—</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6" class="empty">Waiting for producer…</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

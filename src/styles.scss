@@ -5,6 +5,10 @@
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
+:root {
+  --success: green;
+}
+
 html {
   height: 100%;
   @include mat.theme(
@@ -57,3 +61,31 @@ body {
     list-item-label-text-size: 14px,
   )
 );
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--mat-sys-outline-variant);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: 5px;
+
+  &:hover {
+    background-color: var(--mat-sys-outline);
+  }
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--mat-sys-outline-variant) transparent;
+  }
+}

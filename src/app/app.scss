@@ -3,18 +3,6 @@
   height: 100dvh;
 }
 
-mat-sidenav-container {
-  height: 100%;
-}
-
-mat-nav-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-inline: 12px;
-  flex-wrap: nowrap;
-}
-
 .brand {
   display: flex;
   align-items: center;
@@ -26,5 +14,26 @@ mat-nav-list {
 }
 
 main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   padding: 24px;
+}
+
+mat-sidenav-content {
+  display: flex;
+  flex-direction: column;
+}
+
+mat-sidenav-container {
+  height: 100%;
+}
+
+mat-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-inline: 12px;
+  flex-wrap: nowrap;
 }

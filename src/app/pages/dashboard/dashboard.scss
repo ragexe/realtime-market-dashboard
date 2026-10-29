@@ -1,0 +1,101 @@
+:host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.producer-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  button {
+    margin-left: auto;
+  }
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: var(--mat-sys-label-large);
+  text-transform: capitalize;
+
+  .run {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mat-sys-outline);
+}
+
+.status[data-status='running'] .status-dot {
+  background: var(--success);
+}
+
+.status[data-status='paused'] .status-dot {
+  background: var(--mat-sys-surface-bright);
+}
+
+.status[data-status='error'] .status-dot {
+  background: var(--mat-sys-error);
+}
+
+.error {
+  margin: 0;
+  color: var(--mat-sys-error);
+}
+
+.card {
+  background: var(--mat-sys-surface);
+  border-radius: 10px;
+  padding: 0 16px 8px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.market-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--mat-sys-body-medium);
+
+  th,
+  td {
+    padding: 8px 12px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  thead th {
+    font: var(--mat-sys-label-medium);
+    color: var(--mat-sys-on-surface-variant);
+    border-bottom: none;
+    box-shadow: inset 0 -1px 0 var(--mat-sys-outline-variant);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--mat-sys-surface);
+    padding: 16px 12px;
+  }
+
+  tbody tr + tr {
+    border-top: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  .numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
