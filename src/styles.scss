@@ -37,3 +37,19 @@ body {
   height: 100%;
 }
 /* You can add global styles to this file, and also import other style files */
+
+@include mat.sidenav-overrides((
+  container-width: 220px,
+  container-shape: 0,
+  container-divider-color: var(--mat-sys-outline-variant),
+  container-background-color: var(--mat-sys-surface),
+  content-background-color: var(--mat-sys-surface-container-low),
+));
+
+@include mat.list-overrides((
+  list-item-one-line-container-height: 40px,
+  list-item-container-shape: 10px,
+  active-indicator-shape: 10px,
+  active-indicator-color: var(--mat-sys-secondary-container),
+  list-item-label-text-size: 14px,
+));

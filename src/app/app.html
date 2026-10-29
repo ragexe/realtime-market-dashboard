@@ -1,8 +1,35 @@
-<mat-toolbar>
-  <span class="brand">Market Dashboard</span>
-  <nav>
-    <a mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-    <a mat-button routerLink="/settings" routerLinkActive="active">Settings</a>
-  </nav>
-</mat-toolbar>
-<main><router-outlet /></main>
+<mat-sidenav-container>
+  <mat-sidenav mode="side" opened>
+    <div class="brand">Market Dashboard</div>
+    
+    <nav>
+      <mat-nav-list>
+        <a 
+          mat-list-item 
+          routerLink="/dashboard"
+          routerLinkActive 
+          #dashboardRla="routerLinkActive"
+          [activated]="dashboardRla.isActive"
+        >Dashboard</a>
+
+        <a 
+          mat-list-item 
+          routerLink="/settings"
+          routerLinkActive 
+          #settingsRla="routerLinkActive"
+          [activated]="settingsRla.isActive"
+        >Settings</a>
+      </mat-nav-list>
+    </nav>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    @if (pageTitle(); as pageTitle) {
+      <mat-toolbar>{{ pageTitle }}</mat-toolbar>
+    }
+    
+    <main>
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

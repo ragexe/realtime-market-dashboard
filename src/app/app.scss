@@ -1,0 +1,30 @@
+:host {
+  display: block;
+  height: 100dvh;
+}
+
+mat-sidenav-container {
+  height: 100%;
+}
+
+mat-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-inline: 12px;
+  flex-wrap: nowrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 20px 16px;
+  font: var(--mat-sys-title-large);
+  color: var(--mat-sys-primary);
+  padding: 20px 24px 16px;
+}
+
+main {
+  padding: 24px;
+}
