@@ -1,69 +1,22 @@
 import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import {
-  AbstractControl,
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatSlider, MatSliderThumb } from '@angular/material/slider';
 import { map } from 'rxjs';
 
-// TODO: Move to model?
-interface ProducerSettings {
-  /**
-   * Total updates in each batch
-   */
-  instrumentCount: number;
-
-  /**
-   * Total updates in each batch
-   */
-  updatesPerBatch: number;
-
-  /**
-   * Requested batches interval in millis
-   */
-  batchIntervalMs: number;
-}
-
-// TODO: Move to domain?
-const DEFAULT_SETTINGS = {
-  instrumentCount: 5,
-  updatesPerBatch: 100,
-  batchIntervalMs: 500,
-} as const satisfies ProducerSettings;
+import { DEFAULT_SETTINGS, SETTINGS_LIMITS } from '../../../domain/producer-settings.const';
+import { ProducerSettings } from '../../../domain/producer-settings.model';
+import { integerValidator } from './numeric-validators.utils';
 
 const FIELDS = [
   { key: 'instrumentCount', label: 'Instrument count', hint: 'Number of fictional instruments' },
   { key: 'updatesPerBatch', label: 'Updates per batch', hint: 'Total updates in each batch' },
   { key: 'batchIntervalMs', label: 'Batch interval, ms', hint: 'Requested time between batches' },
-] as const satisfies { key: keyof typeof DEFAULT_SETTINGS; label: string; hint: string }[];
-
-// TODO: Move to domain
-const LIMITS = {
-  instrumentCount: { min: 1, max: 50 },
-  updatesPerBatch: { min: 1, max: 1000 },
-  batchIntervalMs: { min: 50, max: 2000 },
-} as const satisfies Record<
-  keyof typeof DEFAULT_SETTINGS,
-  {
-    min: number;
-    max: number;
-  }
->;
-
-function integerValidator(control: AbstractControl): ValidationErrors | null {
-  const value = control.value;
-  if (value === null || value === '') return null;
-
-  return Number.isInteger(value) ? null : { integer: true };
-}
+] as const satisfies { key: keyof ProducerSettings; label: string; hint: string }[];
 
 @Component({
   imports: [
@@ -78,8 +31,8 @@ function integerValidator(control: AbstractControl): ValidationErrors | null {
     MatSliderThumb,
     DecimalPipe,
   ],
-  templateUrl: './settings.html',
-  styleUrl: './settings.scss',
+  templateUrl: './settings.page.html',
+  styleUrl: './settings.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsPage {
@@ -87,7 +40,7 @@ export class SettingsPage {
 
   protected readonly appliedSettings = signal<ProducerSettings>(DEFAULT_SETTINGS);
   protected readonly fields = FIELDS;
-  protected readonly limits = LIMITS;
+  protected readonly limits = SETTINGS_LIMITS;
 
   protected readonly form = this.formBuilder.group({
     instrumentCount: [

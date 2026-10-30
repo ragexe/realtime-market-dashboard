@@ -2,12 +2,12 @@ import { ChangeDetectionStrategy, Component, signal, WritableSignal } from '@ang
 import { MatButton } from '@angular/material/button';
 
 import { InstrumentSnapshot } from '../../../domain/instrument-snapshot.model';
-import { PricePipe } from '../../shared/pipes/price-pipe';
-import { QuantityPipe } from '../../shared/pipes/quantity-pipe';
-import { RatioPipe } from '../../shared/pipes/ratio-pipe';
-import { ImbalancePipe } from '../../shared/pipes/imbalance-pipe';
-import { SpreadPipe } from '../../shared/pipes/spread-pipe';
-import { VwapPipe } from '../../shared/pipes/vwap-pipe';
+import { PricePipe } from '../../shared/pipes/price.pipe';
+import { QuantityPipe } from '../../shared/pipes/quantity.pipe';
+import { RatioPipe } from '../../shared/pipes/ratio.pipe';
+import { ImbalancePipe } from '../../shared/pipes/imbalance.pipe';
+import { SpreadPipe } from '../../shared/pipes/spread.pipe';
+import { VwapPipe } from '../../shared/pipes/vwap.pipe';
 
 const MOCK_INSTRUMENTS: InstrumentSnapshot[] = [
   {
@@ -44,8 +44,8 @@ const MOCK_INSTRUMENTS: InstrumentSnapshot[] = [
 
 @Component({
   imports: [MatButton, PricePipe, QuantityPipe, RatioPipe, ImbalancePipe, SpreadPipe, VwapPipe],
-  templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss',
+  templateUrl: './dashboard.page.html',
+  styleUrl: './dashboard.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardPage {
