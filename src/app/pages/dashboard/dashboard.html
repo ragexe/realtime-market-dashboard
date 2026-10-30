@@ -36,11 +36,22 @@
       @for (row of instruments(); track row.symbol) {
         <tr>
           <th scope="row">{{ row.symbol }}</th>
-          <td class="numeric">{{ row.lastPriceCents ?? '—' }}</td>
-          <td class="numeric">—</td>
-          <td class="numeric">{{ row.volume }}</td>
-          <td class="numeric">—</td>
-          <td class="numeric">—</td>
+          <td class="numeric">{{ row.lastPriceCents | price }}</td>
+          <!-- TODO: Spread evaluation -->
+          <td class="numeric">{{ row.bidCents | price }}</td>
+          <td class="numeric">{{ row.volume | quantity }}</td>
+          <!-- TODO: VWAP evaluation -->
+          <td class="numeric">{{ null | price }}</td>
+
+          <!-- TODO: Imbalance evaluation -->
+          @let imbalance = null;
+          <td
+            class="numeric"
+            [class.positive]="imbalance !== null && imbalance > 0"
+            [class.negative]="imbalance !== null && imbalance < 0"
+          >
+            {{ imbalance | ratio }}
+          </td>
         </tr>
       } @empty {
         <tr>

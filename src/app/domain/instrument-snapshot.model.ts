@@ -1,10 +1,10 @@
 export interface InstrumentSnapshot {
-  symbol: unknown;
-  lastPriceCents: unknown;
-  bidCents: unknown;
-  askCents: unknown;
-  bidQuantity: unknown;
-  askQuantity: unknown;
-  volume: unknown;
-  notionalCents: unknown;
+  symbol: string;
+  lastPriceCents: number | null;
+  bidCents: number | null;
+  askCents: number | null;
+  bidQuantity: number | null;
+  askQuantity: number | null;
+  volume: number;
+  notionalCents: number;
 }

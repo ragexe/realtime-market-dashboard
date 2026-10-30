@@ -2,6 +2,9 @@ import { ChangeDetectionStrategy, Component, signal, WritableSignal } from '@ang
 import { MatButton } from '@angular/material/button';
 
 import { InstrumentSnapshot } from '../../domain/instrument-snapshot.model';
+import { PricePipe } from '../../shared/pipes/price-pipe';
+import { QuantityPipe } from '../../shared/pipes/quantity-pipe';
+import { RatioPipe } from '../../shared/pipes/ratio-pipe';
 
 const MOCK_INSTRUMENTS: InstrumentSnapshot[] = [
   {
@@ -38,7 +41,7 @@ const MOCK_INSTRUMENTS: InstrumentSnapshot[] = [
 
 @Component({
   selector: 'app-dashboard',
-  imports: [MatButton],
+  imports: [MatButton, PricePipe, QuantityPipe, RatioPipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

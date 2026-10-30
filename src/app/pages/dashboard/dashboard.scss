@@ -89,9 +89,25 @@
     border-top: 1px solid var(--mat-sys-outline-variant);
   }
 
+  tbody tr:hover > * {
+    background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+  }
+
+  tbody th {
+    font-weight: 600;
+  }
+
   .numeric {
     text-align: right;
     font-variant-numeric: tabular-nums;
+
+    &.positive {
+      color: var(--positive);
+    }
+
+    &.negative {
+      color: var(--negative);
+    }
   }
 
   .empty {
