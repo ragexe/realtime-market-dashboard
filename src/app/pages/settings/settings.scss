@@ -1,0 +1,36 @@
+@use '../../../mixins' as *;
+
+@include card-class;
+
+:host {
+  display: contents;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
+  column-gap: 8px;
+  min-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  width: 60%;
+  min-width: 400px;
+}
+
+.rate {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.card {
+  padding-top: 24px;
+  display: grid;
+  gap: 8px;
+}

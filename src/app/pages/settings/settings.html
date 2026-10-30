@@ -1,1 +1,41 @@
-<p>settings works!</p>
+<form class="settings-form" [formGroup]="form" (ngSubmit)="apply()">
+  @for (field of fields; track field.key) {
+    @let control = form.controls[field.key];
+    @let limit = limits[field.key];
+
+    <section class="card">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>{{ field.label }}</mat-label>
+
+        <input
+          matInput
+          type="number"
+          step="1"
+          [min]="limit.min"
+          [max]="limit.max"
+          [formControlName]="field.key"
+        />
+
+        <mat-hint>{{ field.hint }} ({{ limit.min }}–{{ limit.max }})</mat-hint>
+
+        @if (control.hasError('required')) {
+          <mat-error>Required</mat-error>
+        } @else if (control.hasError('integer')) {
+          <mat-error>Must be a whole number</mat-error>
+        } @else if (control.hasError('min') || control.hasError('max')) {
+          <mat-error>Allowed range: {{ limit.min }}–{{ limit.max }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-slider [min]="limit.min" [max]="limit.max" step="1" discrete>
+        <input matSliderThumb [value]="control.value" (valueChange)="control.setValue($event)" />
+      </mat-slider>
+    </section>
+  }
+
+  <p class="rate">Nominal rate: —</p>
+
+  <div class="actions">
+    <button mat-flat-button type="submit">Apply</button>
+  </div>
+</form>

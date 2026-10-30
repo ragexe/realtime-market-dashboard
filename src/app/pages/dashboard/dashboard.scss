@@ -1,3 +1,5 @@
+@use '../../../mixins' as *;
+
 :host {
   flex: 1;
   min-height: 0;
@@ -52,14 +54,7 @@
   color: var(--mat-sys-error);
 }
 
-.card {
-  background: var(--mat-sys-surface);
-  border-radius: 10px;
-  padding: 0 16px 8px;
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-}
+@include card-class;
 
 .market-table {
   width: 100%;
