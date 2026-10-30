@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, WritableSignal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 
 import type { InstrumentSnapshot } from '../../../domain/instrument-snapshot.model';
@@ -9,6 +9,7 @@ import { QuantityPipe } from '../../shared/pipes/quantity.pipe';
 import { RatioPipe } from '../../shared/pipes/ratio.pipe';
 import { SpreadPipe } from '../../shared/pipes/spread.pipe';
 import { VwapPipe } from '../../shared/pipes/vwap.pipe';
+import { MarketDataService } from '../../core/market-data/market-data.service';
 
 const MOCK_INSTRUMENTS: InstrumentSnapshot[] = [
   {
@@ -50,6 +51,7 @@ const MOCK_INSTRUMENTS: InstrumentSnapshot[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardPage {
+  private readonly MarketDataService = inject(MarketDataService);
   protected readonly instruments: WritableSignal<InstrumentSnapshot[]> = signal([
     ...MOCK_INSTRUMENTS,
   ]);
