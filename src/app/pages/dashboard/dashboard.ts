@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, signal, WritableSignal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 
-import { InstrumentSnapshot } from '../../domain/instrument-snapshot.model';
+import { InstrumentSnapshot } from '../../../domain/instrument-snapshot.model';
 import { PricePipe } from '../../shared/pipes/price-pipe';
 import { QuantityPipe } from '../../shared/pipes/quantity-pipe';
 import { RatioPipe } from '../../shared/pipes/ratio-pipe';

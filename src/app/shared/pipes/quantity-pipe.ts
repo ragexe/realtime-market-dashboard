@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-import { formatQuantity } from '../../domain/numeric-formatters.utils';
+import { formatQuantity } from '../../../domain/numeric-formatters.utils';
 
 @Pipe({ name: 'quantity', pure: true })
 export class QuantityPipe implements PipeTransform {

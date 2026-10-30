@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-import { formatPriceCents } from '../../domain/numeric-formatters.utils';
+import { formatPriceCents } from '../../../domain/numeric-formatters.utils';
 
 @Pipe({ name: 'price', pure: true })
 export class PricePipe implements PipeTransform {

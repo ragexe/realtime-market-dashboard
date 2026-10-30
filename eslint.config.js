@@ -44,5 +44,25 @@ module.exports = defineConfig([
       '@angular-eslint/template/prefer-self-closing-tags': 'error',
     },
   },
+  {
+    files: ['src/domain/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@angular/*', 'rxjs', 'rxjs/*'],
+              message: 'Domain must stay framework-free: it is shared with the Web Worker.',
+            },
+            {
+              group: ['**/app/**', '**/worker/**'],
+              message: 'Domain must not depend on app or worker code.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   prettier,
 ]);
