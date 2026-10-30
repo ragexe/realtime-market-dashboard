@@ -37,14 +37,11 @@
         <tr>
           <th scope="row">{{ row.symbol }}</th>
           <td class="numeric">{{ row.lastPriceCents | price }}</td>
-          <!-- TODO: Spread evaluation -->
-          <td class="numeric">{{ row.bidCents | price }}</td>
+          <td class="numeric">{{ row | spread | price }}</td>
           <td class="numeric">{{ row.volume | quantity }}</td>
-          <!-- TODO: VWAP evaluation -->
-          <td class="numeric">{{ null | price }}</td>
+          <td class="numeric">{{ row | vwap | price }}</td>
 
-          <!-- TODO: Imbalance evaluation -->
-          @let imbalance = null;
+          @let imbalance = row | imbalance;
           <td
             class="numeric"
             [class.positive]="imbalance !== null && imbalance > 0"

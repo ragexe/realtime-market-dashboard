@@ -5,6 +5,9 @@ import { InstrumentSnapshot } from '../../../domain/instrument-snapshot.model';
 import { PricePipe } from '../../shared/pipes/price-pipe';
 import { QuantityPipe } from '../../shared/pipes/quantity-pipe';
 import { RatioPipe } from '../../shared/pipes/ratio-pipe';
+import { ImbalancePipe } from '../../shared/pipes/imbalance-pipe';
+import { SpreadPipe } from '../../shared/pipes/spread-pipe';
+import { VwapPipe } from '../../shared/pipes/vwap-pipe';
 
 const MOCK_INSTRUMENTS: InstrumentSnapshot[] = [
   {
@@ -41,7 +44,7 @@ const MOCK_INSTRUMENTS: InstrumentSnapshot[] = [
 
 @Component({
   selector: 'app-dashboard',
-  imports: [MatButton, PricePipe, QuantityPipe, RatioPipe],
+  imports: [MatButton, PricePipe, QuantityPipe, RatioPipe, ImbalancePipe, SpreadPipe, VwapPipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
