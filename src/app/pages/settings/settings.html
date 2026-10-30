@@ -33,7 +33,13 @@
     </section>
   }
 
-  <p class="rate">Nominal rate: —</p>
+  <p class="rate">
+    @if (nominalRate(); as rate) {
+      Nominal rate: ≈ {{ rate | number: '1.2-2' }} updates/s across all instruments
+    } @else {
+      Nominal rate: —
+    }
+  </p>
 
   <div class="actions">
     <button mat-flat-button type="submit">Apply</button>

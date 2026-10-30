@@ -1,9 +1,18 @@
+import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  AbstractControl,
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { MatButton } from '@angular/material/button';
-import { MatSlider, MatSliderThumb } from '@angular/material/slider';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
+import { MatSlider, MatSliderThumb } from '@angular/material/slider';
+import { map } from 'rxjs';
 
 // TODO: Move to model?
 interface ProducerSettings {
@@ -25,9 +34,9 @@ interface ProducerSettings {
 
 // TODO: Move to domain?
 const DEFAULT_SETTINGS = {
-  instrumentCount: 42,
-  updatesPerBatch: 42,
-  batchIntervalMs: 42,
+  instrumentCount: 5,
+  updatesPerBatch: 100,
+  batchIntervalMs: 500,
 } as const satisfies ProducerSettings;
 
 const FIELDS = [
@@ -49,6 +58,13 @@ const LIMITS = {
   }
 >;
 
+function integerValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (value === null || value === '') return null;
+
+  return Number.isInteger(value) ? null : { integer: true };
+}
+
 @Component({
   selector: 'app-settings',
   imports: [
@@ -61,6 +77,7 @@ const LIMITS = {
     MatButton,
     MatSlider,
     MatSliderThumb,
+    DecimalPipe,
   ],
   templateUrl: './settings.html',
   styleUrl: './settings.scss',
@@ -74,12 +91,55 @@ export class Settings {
   protected readonly limits = LIMITS;
 
   protected readonly form = this.formBuilder.group({
-    instrumentCount: [this.appliedSettings().instrumentCount, []],
-    updatesPerBatch: [this.appliedSettings().updatesPerBatch, []],
-    batchIntervalMs: [this.appliedSettings().batchIntervalMs, []],
+    instrumentCount: [
+      this.appliedSettings().instrumentCount,
+      [
+        Validators.required,
+        Validators.min(this.limits['instrumentCount'].min),
+        Validators.max(this.limits['instrumentCount'].max),
+        integerValidator,
+      ],
+    ],
+
+    updatesPerBatch: [
+      this.appliedSettings().updatesPerBatch,
+      [
+        Validators.required,
+        Validators.min(this.limits['updatesPerBatch'].min),
+        Validators.max(this.limits['updatesPerBatch'].max),
+        integerValidator,
+      ],
+    ],
+
+    batchIntervalMs: [
+      this.appliedSettings().batchIntervalMs,
+      [
+        Validators.required,
+        Validators.min(this.limits['batchIntervalMs'].min),
+        Validators.max(this.limits['batchIntervalMs'].max),
+        integerValidator,
+      ],
+    ],
   });
 
+  protected readonly nominalRate = toSignal(
+    this.form.valueChanges.pipe(map(() => this.computeNominalRate())),
+    { initialValue: this.computeNominalRate() },
+  );
+
   protected apply(): void {
-    // TODO: tbd
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.appliedSettings.set(this.form.getRawValue());
+  }
+
+  private computeNominalRate(): number | null {
+    if (this.form.invalid) return null;
+
+    const { updatesPerBatch, batchIntervalMs } = this.form.getRawValue();
+    return (updatesPerBatch * 1000) / batchIntervalMs;
   }
 }

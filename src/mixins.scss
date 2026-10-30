@@ -1,10 +1,7 @@
-@mixin card-class {
-  .card {
-    background: var(--mat-sys-surface);
-    border-radius: 10px;
-    padding: 0 16px 8px;
-    flex: 1;
-    min-height: 0;
-    overflow: auto;
-  }
+@mixin card {
+  background: var(--mat-sys-surface);
+  border-radius: 10px;
+  padding: 0 16px 8px;
+  flex: 1;
+  min-height: 0;
 }

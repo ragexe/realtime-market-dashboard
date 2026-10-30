@@ -1,7 +1,5 @@
 @use '../../../mixins' as *;
 
-@include card-class;
-
 :host {
   display: contents;
 }
@@ -22,6 +20,7 @@
   margin: 0;
   color: var(--mat-sys-on-surface-variant);
   font-variant-numeric: tabular-nums;
+  padding: 0 16px;
 }
 
 .actions {
@@ -30,7 +29,10 @@
 }
 
 .card {
+  @include card;
   padding-top: 24px;
   display: grid;
   gap: 8px;
+  overflow: visible;
+  flex: none;
 }

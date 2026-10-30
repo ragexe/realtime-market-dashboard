@@ -54,7 +54,10 @@
   color: var(--mat-sys-error);
 }
 
-@include card-class;
+.card {
+  @include card;
+  overflow: auto;
+}
 
 .market-table {
   width: 100%;
