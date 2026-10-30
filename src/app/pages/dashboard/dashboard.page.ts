@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, signal, WritableSignal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 
-import { InstrumentSnapshot } from '../../../domain/instrument-snapshot.model';
+import type { InstrumentSnapshot } from '../../../domain/instrument-snapshot.model';
+import type { ProducerStatus } from '../../../domain/producer-status.model';
+import { ImbalancePipe } from '../../shared/pipes/imbalance.pipe';
 import { PricePipe } from '../../shared/pipes/price.pipe';
 import { QuantityPipe } from '../../shared/pipes/quantity.pipe';
 import { RatioPipe } from '../../shared/pipes/ratio.pipe';
-import { ImbalancePipe } from '../../shared/pipes/imbalance.pipe';
 import { SpreadPipe } from '../../shared/pipes/spread.pipe';
 import { VwapPipe } from '../../shared/pipes/vwap.pipe';
 
@@ -53,7 +54,7 @@ export class DashboardPage {
     ...MOCK_INSTRUMENTS,
   ]);
 
-  protected readonly status = signal<'starting' | 'running' | 'paused' | 'error'>('running'); // TODO: Move to type
+  protected readonly status = signal<ProducerStatus | 'error' | 'starting'>('running');
   protected readonly runId = signal(1);
   protected readonly error = signal<string | null>(null);
 
