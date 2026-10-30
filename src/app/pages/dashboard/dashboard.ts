@@ -43,13 +43,12 @@ const MOCK_INSTRUMENTS: InstrumentSnapshot[] = [
 ];
 
 @Component({
-  selector: 'app-dashboard',
   imports: [MatButton, PricePipe, QuantityPipe, RatioPipe, ImbalancePipe, SpreadPipe, VwapPipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Dashboard {
+export class DashboardPage {
   protected readonly instruments: WritableSignal<InstrumentSnapshot[]> = signal([
     ...MOCK_INSTRUMENTS,
   ]);

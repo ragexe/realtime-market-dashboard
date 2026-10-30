@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Settings } from './settings';
+import { SettingsPage } from './settings';
 
 type FieldKey = 'instrumentCount' | 'updatesPerBatch' | 'batchIntervalMs';
 
@@ -11,16 +11,16 @@ const FIELD_ORDER = [
 ] as const satisfies FieldKey[];
 
 describe('Settings', () => {
-  let component: Settings;
-  let fixture: ComponentFixture<Settings>;
+  let component: SettingsPage;
+  let fixture: ComponentFixture<SettingsPage>;
   let host: HTMLElement;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Settings],
+      imports: [SettingsPage],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Settings);
+    fixture = TestBed.createComponent(SettingsPage);
     component = fixture.componentInstance;
     host = fixture.nativeElement;
     await fixture.whenStable();

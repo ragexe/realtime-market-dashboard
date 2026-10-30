@@ -66,7 +66,6 @@ function integerValidator(control: AbstractControl): ValidationErrors | null {
 }
 
 @Component({
-  selector: 'app-settings',
   imports: [
     ReactiveFormsModule,
     MatFormField,
@@ -83,7 +82,7 @@ function integerValidator(control: AbstractControl): ValidationErrors | null {
   styleUrl: './settings.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Settings {
+export class SettingsPage {
   private readonly formBuilder = inject(NonNullableFormBuilder);
 
   protected readonly appliedSettings = signal<ProducerSettings>(DEFAULT_SETTINGS);
@@ -130,6 +129,7 @@ export class Settings {
   protected apply(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+
       return;
     }
 
@@ -140,6 +140,7 @@ export class Settings {
     if (this.form.invalid) return null;
 
     const { updatesPerBatch, batchIntervalMs } = this.form.getRawValue();
+
     return (updatesPerBatch * 1000) / batchIntervalMs;
   }
 }
