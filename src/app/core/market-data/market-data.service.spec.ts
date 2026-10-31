@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import type { InstrumentSnapshot } from '../../../domain/instrument-snapshot.model';
+import { emptyInstrument } from '../../../domain/instrument-symbol.utils';
 import { DEFAULT_SETTINGS } from '../../../domain/producer-settings.const';
 import type { ProducerSettings } from '../../../domain/producer-settings.model';
 import { MarketDataService } from './market-data.service';
@@ -24,6 +25,10 @@ function instrument(symbol: string, volume: number): InstrumentSnapshot {
     volume,
     notionalCents: volume * 10200,
   };
+}
+
+function emptyRows(count: number): InstrumentSnapshot[] {
+  return Array.from({ length: count }, (_, index) => emptyInstrument(index));
 }
 
 describe('MarketDataService', () => {
@@ -59,6 +64,10 @@ describe('MarketDataService', () => {
       ]);
       expect(service.runId()).toBe(1);
       expect(service.settings()).toEqual(DEFAULT_SETTINGS);
+    });
+
+    it('shows empty rows for the default instrument count before any data arrives', () => {
+      expect(service.instruments()).toEqual(emptyRows(DEFAULT_SETTINGS.instrumentCount));
     });
 
     it('stays in "starting" until the worker reports it is running', () => {
@@ -144,7 +153,7 @@ describe('MarketDataService', () => {
     it('clears values and totals of the previous run', () => {
       service.applySettings(CUSTOM_SETTINGS);
 
-      expect(service.instruments()).toEqual([]);
+      expect(service.instruments()).toEqual(emptyRows(CUSTOM_SETTINGS.instrumentCount));
     });
 
     it('starts generation even when the previous run was paused', () => {
@@ -166,7 +175,7 @@ describe('MarketDataService', () => {
       workers[0].emit({ type: 'snapshot', runId: 1, instruments: [instrument('OLD', 999)] });
       workers[0].emit({ type: 'status', runId: 1, status: 'paused' });
 
-      expect(service.instruments()).toEqual([]);
+      expect(service.instruments()).toEqual(emptyRows(CUSTOM_SETTINGS.instrumentCount));
       expect(service.status()).toBe('running');
     });
 
@@ -174,7 +183,7 @@ describe('MarketDataService', () => {
       currentWorker().emit({ type: 'snapshot', runId: 1, instruments: [instrument('OLD', 999)] });
       currentWorker().emit({ type: 'error', runId: 1, message: 'Stale failure' });
 
-      expect(service.instruments()).toEqual([]);
+      expect(service.instruments()).toEqual(emptyRows(CUSTOM_SETTINGS.instrumentCount));
       expect(service.status()).toBe('running');
       expect(service.error()).toBeNull();
     });

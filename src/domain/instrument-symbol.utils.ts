@@ -1,3 +1,5 @@
+import { InstrumentSnapshot } from './instrument-snapshot.model';
+
 const BASE = [
   'ALPH',
   'BETA',
@@ -44,4 +46,17 @@ export function instrumentSymbol(index: number): string {
   const base = BASE[index % BASE.length];
 
   return cycle === 0 ? base : `${base}.${convertToExcelColumn(cycle)}`;
+}
+
+export function emptyInstrument(index: number): InstrumentSnapshot {
+  return {
+    symbol: instrumentSymbol(index),
+    lastPriceCents: null,
+    bidCents: null,
+    askCents: null,
+    bidQuantity: null,
+    askQuantity: null,
+    volume: 0,
+    notionalCents: 0,
+  };
 }

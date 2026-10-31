@@ -1,4 +1,5 @@
 import type { InstrumentSnapshot } from '../../../domain/instrument-snapshot.model';
+import { emptyInstrument } from '../../../domain/instrument-symbol.utils';
 import { DEFAULT_SETTINGS } from '../../../domain/producer-settings.const';
 import type { ProducerSettings } from '../../../domain/producer-settings.model';
 import { marketReducer } from './market.reducer';
@@ -23,6 +24,10 @@ function instrument(symbol: string, volume = 40): InstrumentSnapshot {
   };
 }
 
+function emptyRows(count: number): InstrumentSnapshot[] {
+  return Array.from({ length: count }, (_, index) => emptyInstrument(index));
+}
+
 function runningState(overrides: Partial<MarketState> = {}): MarketState {
   return {
     ...INITIAL_STATE,
@@ -31,6 +36,18 @@ function runningState(overrides: Partial<MarketState> = {}): MarketState {
     instruments: [instrument('ALFA')],
     ...overrides,
   };
+}
+
+function isEmptyRow(row: InstrumentSnapshot): boolean {
+  return (
+    row.lastPriceCents === null &&
+    row.bidCents === null &&
+    row.askCents === null &&
+    row.bidQuantity === null &&
+    row.askQuantity === null &&
+    row.volume === 0 &&
+    row.notionalCents === 0
+  );
 }
 
 describe('marketReducer', () => {
@@ -58,8 +75,32 @@ describe('marketReducer', () => {
 
       const state = marketReducer(previous, { type: 'runStarted', settings: CUSTOM_SETTINGS });
 
-      expect(state.instruments).toEqual([]);
+      expect(state.instruments).toEqual(emptyRows(CUSTOM_SETTINGS.instrumentCount));
+
       expect(state.error).toBeNull();
+    });
+
+    it('shows one empty row per instrument before any data arrives', () => {
+      const state = marketReducer(INITIAL_STATE, { type: 'runStarted' });
+
+      expect(state.instruments.map(({ symbol }) => symbol)).toEqual([
+        'ALPH',
+        'BETA',
+        'GAMM',
+        'DELT',
+        'EPSI',
+      ]);
+
+      expect(state.instruments.every(isEmptyRow)).toBe(true);
+    });
+
+    it('sizes the empty rows by the applied instrument count', () => {
+      const state = marketReducer(runningState(), {
+        type: 'runStarted',
+        settings: CUSTOM_SETTINGS,
+      });
+
+      expect(state.instruments).toHaveLength(CUSTOM_SETTINGS.instrumentCount);
     });
 
     it('starts a new run even when the previous one was paused', () => {

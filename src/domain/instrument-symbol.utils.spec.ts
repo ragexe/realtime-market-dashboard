@@ -1,4 +1,4 @@
-import { instrumentSymbol } from './instrument-symbol.utils';
+import { emptyInstrument, instrumentSymbol } from './instrument-symbol.utils';
 import { SETTINGS_LIMITS } from './producer-settings.const';
 
 const BASE_LENGTH = 24;
@@ -72,5 +72,24 @@ describe('instrumentSymbol', () => {
 
   it('rejects a negative index', () => {
     expect(() => instrumentSymbol(-1)).toThrow();
+  });
+});
+
+describe('emptyInstrument', () => {
+  it('has the instrument symbol, unavailable prices and quantities, and zero totals', () => {
+    expect(emptyInstrument(BASE_LENGTH)).toEqual({
+      symbol: 'ALPH.B',
+      lastPriceCents: null,
+      bidCents: null,
+      askCents: null,
+      bidQuantity: null,
+      askQuantity: null,
+      volume: 0,
+      notionalCents: 0,
+    });
+  });
+
+  it('returns a new object every time, so rows never share state', () => {
+    expect(emptyInstrument(0)).not.toBe(emptyInstrument(0));
   });
 });
