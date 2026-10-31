@@ -2,7 +2,7 @@ import { Subject } from 'rxjs';
 
 import type { WorkerAction } from '../../../../domain/worker-action.model';
 import type { WorkerEvent } from '../../../../domain/worker-event.model';
-import type { MarketWorker } from '../market-worker';
+import type { MarketWorker } from '../market-worker.utils';
 
 export class FakeMarketWorker implements MarketWorker {
   private readonly eventsSubject = new Subject<WorkerEvent>();

@@ -9,7 +9,6 @@ export interface MarketWorker {
   failures$: Observable<string>;
   post(action: WorkerAction): void;
   terminate(): void;
-  success: boolean;
 }
 
 export type MarketWorkerFactory = () => MarketWorker;
@@ -35,7 +34,6 @@ export function createBrowserMarketWorker(): MarketWorker {
     failures$,
     post: (action) => worker.postMessage(action),
     terminate: () => worker.terminate(),
-    success: true,
   };
 }
 

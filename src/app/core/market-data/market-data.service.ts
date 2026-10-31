@@ -3,10 +3,17 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, EMPTY, filter, merge, Subject, switchMap, tap } from 'rxjs';
 
 import type { ProducerSettings } from '../../../domain/producer-settings.model';
-import { MARKET_WORKER_FACTORY, type MarketWorker } from './market-worker';
+import { MARKET_WORKER_FACTORY, type MarketWorker } from './market-worker.utils';
 import type { MarketAction } from './market.actions';
 import { marketReducer } from './market.reducer';
 import { INITIAL_STATE, type MarketState } from './market.state';
+
+const NOOP_WORKER: MarketWorker = {
+  events$: EMPTY,
+  failures$: EMPTY,
+  post: () => undefined,
+  terminate: () => undefined,
+};
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +22,7 @@ export class MarketDataService implements OnDestroy {
   private readonly marketWorkerFactory = inject(MARKET_WORKER_FACTORY);
   private readonly state = signal<MarketState>(INITIAL_STATE);
   private readonly actions$ = new Subject<MarketAction>();
-  private readonly marketWorker$ = new BehaviorSubject<MarketWorker>(this.createMarketWorker());
+  private readonly marketWorker$ = new BehaviorSubject<MarketWorker>(NOOP_WORKER);
 
   readonly status = computed(() => this.state().status);
   readonly instruments = computed(() => this.state().instruments);
@@ -38,7 +45,7 @@ export class MarketDataService implements OnDestroy {
       switchMap((worker) =>
         worker.failures$.pipe(
           tap((message) => {
-            this.dispatch({ type: 'workerFailed', message } as const);
+            this.dispatch({ type: 'workerFailed', message });
           }),
         ),
       ),
@@ -50,19 +57,15 @@ export class MarketDataService implements OnDestroy {
           action.type === 'runStarted',
       ),
       tap(() => {
-        const marketWorker = this.marketWorker$.value;
+        this.marketWorker$.value.terminate();
 
-        this.marketWorker$.value.post({
-          type: 'start',
-          runId: this.runId(),
-          settings: this.settings(),
-        });
-
-        if (!marketWorker.success) {
-          this.dispatch({
-            type: 'workerFailed',
-            message: 'Failed to create worker',
-          });
+        try {
+          const worker = this.marketWorkerFactory();
+          this.marketWorker$.next(worker);
+          worker.post({ type: 'start', runId: this.runId(), settings: this.settings() });
+        } catch (error) {
+          console.error('Failed to create worker', error);
+          this.dispatch({ type: 'workerFailed', message: 'Failed to create worker' });
         }
       }),
     );
@@ -100,9 +103,6 @@ export class MarketDataService implements OnDestroy {
   }
 
   applySettings(settings: ProducerSettings) {
-    this.marketWorker$.value.terminate();
-    this.marketWorker$.next(this.createMarketWorker());
-
     this.dispatch({
       type: 'runStarted',
       settings,
@@ -111,30 +111,6 @@ export class MarketDataService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.marketWorker$.value.terminate();
-  }
-
-  private createMarketWorker(): MarketWorker {
-    try {
-      return this.marketWorkerFactory();
-    } catch (error: unknown) {
-      console.error('Failed to create worker', error);
-
-      const workerStub = {
-        events$: EMPTY,
-        failures$: EMPTY,
-        success: false,
-
-        post: () => {
-          /* empty */
-        },
-
-        terminate: () => {
-          /* empty */
-        },
-      };
-
-      return workerStub;
-    }
   }
 
   private dispatch(action: MarketAction): void {
