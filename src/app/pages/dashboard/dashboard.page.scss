@@ -62,7 +62,12 @@
 .market-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   font: var(--mat-sys-body-medium);
+
+  .col-symbol {
+    width: 20%;
+  }
 
   th,
   td {

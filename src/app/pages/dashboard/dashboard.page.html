@@ -10,8 +10,9 @@
   }
 
   <button
-    mat-flat-button
+    matButton="tonal"
     type="button"
+    color="accent"
     [disabled]="status() === 'error' || status() === 'starting'"
     (click)="togglePause()"
   >
@@ -21,6 +22,11 @@
 
 <section class="card">
   <table class="market-table">
+    <colgroup>
+      <col class="col-symbol" />
+      <col span="5" />
+    </colgroup>
+
     <thead>
       <tr>
         <th scope="col">Symbol</th>

@@ -1,19 +1,19 @@
 import type { InstrumentSnapshot } from './instrument-snapshot.model';
 import type { RunId } from './run-id.model'; // TODO: App linter preferred typed import rule
 
-interface WorkerSnapshotEvent {
+export interface WorkerSnapshotEvent {
   type: 'snapshot';
   runId: RunId;
   instruments: InstrumentSnapshot[]; // TODO: Optimize memory usage
 }
 
-interface WorkerStatusEvent {
+export interface WorkerStatusEvent {
   type: 'status';
   runId: RunId;
   status: 'running' | 'paused';
 }
 
-interface WorkerErrorEvent {
+export interface WorkerErrorEvent {
   type: 'error';
   runId: RunId;
   message: string;
