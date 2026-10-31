@@ -3,14 +3,22 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prestart": "npm run build:wasm",
     "start": "ng serve",
+    "prebuild": "npm run build:wasm",
     "build": "ng build",
+    "prewatch": "npm run build:wasm",
     "watch": "ng build --watch --configuration development",
+    "pretest:dev": "npm run build:wasm",
     "test:dev": "ng test",
-    "test": "ng test --watch=false",
+    "pretest": "npm run build:wasm",
+    "test": "ng test --watch=false && npm run test:wasm",
+    "test:wasm": "vitest run --config wasm/vitest.config.ts",
     "lint": "ng lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "build:wasm": "asc wasm/assembly/index.ts --config wasm/asconfig.json --target release",
+    "build:wasm:debug": "asc wasm/assembly/index.ts --config wasm/asconfig.json --target debug"
   },
   "private": true,
   "packageManager": "npm@11.11.0",
@@ -31,7 +39,9 @@
     "@angular/cli": "^21.2.27",
     "@angular/compiler-cli": "^21.2.0",
     "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.5",
     "angular-eslint": "21.4.0",
+    "assemblyscript": "^0.28.20",
     "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^28.0.0",
@@ -39,5 +49,8 @@
     "typescript": "~5.9.2",
     "typescript-eslint": "8.59.2",
     "vitest": "^4.0.8"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
   }
 }

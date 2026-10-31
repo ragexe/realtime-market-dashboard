@@ -2,9 +2,14 @@
 
 import type { RunId } from '../domain/run-id.model';
 import type { WorkerAction } from '../domain/worker-action.model';
-import type { WorkerSnapshotEvent, WorkerStatusEvent } from '../domain/worker-event.model';
+import type {
+  WorkerErrorEvent,
+  WorkerSnapshotEvent,
+  WorkerStatusEvent,
+} from '../domain/worker-event.model';
 import type { ProducerSettings } from '../domain/producer-settings.model';
 import type { InstrumentSnapshot } from '../domain/instrument-snapshot.model';
+import { loadMarketGenerator } from './market-generator.loader';
 
 // Declare self to get proper IntelliSense for DedicatedWorkerGlobalScope
 declare const self: DedicatedWorkerGlobalScope;
@@ -46,12 +51,26 @@ const MOCK_INSTRUMENTS: () => InstrumentSnapshot[] = () => [
   },
 ];
 
-function startWork({ runId, settings }: { runId: RunId; settings: ProducerSettings }) {
+async function startWork({ runId, settings }: { runId: RunId; settings: ProducerSettings }) {
   if (intervalId !== null) return;
 
   isPaused = false;
   currentRunId = runId;
-  console.debug('[market.worker] starting task execution loop.');
+
+  try {
+    const generator = await loadMarketGenerator();
+    console.debug('[market.worker] generator loaded, version', generator.generatorVersion());
+  } catch (error) {
+    const errorMessage: WorkerErrorEvent = {
+      type: 'error',
+      runId,
+      message: error instanceof Error ? error.message : 'Market generator failed to load',
+    };
+
+    self.postMessage(errorMessage);
+
+    return;
+  }
 
   const statusMessage: WorkerStatusEvent = { status: 'running', type: 'status', runId };
   self.postMessage(statusMessage);
@@ -104,7 +123,7 @@ self.addEventListener('message', ({ data }: MessageEvent<WorkerAction>) => {
 
   switch (commandType) {
     case 'start':
-      startWork(data);
+      void startWork(data);
       return;
 
     case 'pause':

@@ -1,0 +1,16 @@
+{
+  "targets": {
+    "release": {
+      "outFile": "../public/wasm/market-generator.wasm",
+      "optimizeLevel": 3,
+      "shrinkLevel": 0,
+      "noAssert": false
+    },
+    "debug": {
+      "outFile": "../public/wasm/market-generator.debug.wasm",
+      "textFile": "../public/wasm/market-generator.debug.wat",
+      "sourceMap": true,
+      "debug": true
+    }
+  }
+}

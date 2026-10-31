@@ -35,7 +35,7 @@ jobs:
         run: npm test
 
       - name: Production build
-        run: npx ng build --base-href /realtime-market-dashboard/
+        run: npm run build -- --base-href /realtime-market-dashboard/
 
       - name: SPA fallback
         run: cp dist/realtime-market-dashboard/browser/index.html dist/realtime-market-dashboard/browser/404.html
