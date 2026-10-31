@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
@@ -8,8 +8,9 @@ import { MatInput } from '@angular/material/input';
 import { MatSlider, MatSliderThumb } from '@angular/material/slider';
 import { map } from 'rxjs';
 
-import { DEFAULT_SETTINGS, SETTINGS_LIMITS } from '../../../domain/producer-settings.const';
+import { SETTINGS_LIMITS } from '../../../domain/producer-settings.const';
 import { ProducerSettings } from '../../../domain/producer-settings.model';
+import { MarketDataService } from '../../core/market-data/market-data.service';
 import { integerValidator } from './numeric-validators.utils';
 
 const FIELDS = [
@@ -37,8 +38,9 @@ const FIELDS = [
 })
 export class SettingsPage {
   private readonly formBuilder = inject(NonNullableFormBuilder);
+  private readonly marketDataService = inject(MarketDataService);
 
-  protected readonly appliedSettings = signal<ProducerSettings>(DEFAULT_SETTINGS);
+  protected readonly appliedSettings = this.marketDataService.settings;
   protected readonly fields = FIELDS;
   protected readonly limits = SETTINGS_LIMITS;
 
@@ -86,7 +88,7 @@ export class SettingsPage {
       return;
     }
 
-    this.appliedSettings.set(this.form.getRawValue());
+    this.marketDataService.applySettings(this.form.getRawValue());
   }
 
   private computeNominalRate(): number | null {

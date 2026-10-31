@@ -42,9 +42,17 @@
       @for (row of instruments(); track row.symbol) {
         <tr>
           <th scope="row">{{ row.symbol }}</th>
-          <td class="numeric">{{ row.lastPriceCents | price }}</td>
+
+          <td class="numeric" [appFlashOnChange]="row.lastPriceCents">
+            {{ row.lastPriceCents | price }}
+          </td>
+
           <td class="numeric">{{ row | spread | price }}</td>
-          <td class="numeric">{{ row.volume | quantity }}</td>
+
+          <td class="numeric" [appFlashOnChange]="row.volume" flashMode="change">
+            {{ row.volume | quantity }}
+          </td>
+
           <td class="numeric">{{ row | vwap | price }}</td>
 
           @let imbalance = row | imbalance;
@@ -57,8 +65,8 @@
           </td>
         </tr>
       } @empty {
-        <tr>
-          <td colspan="6" class="empty">Waiting for producer…</td>
+        <tr class="empty">
+          <td colspan="6">Waiting for producer…</td>
         </tr>
       }
     </tbody>
