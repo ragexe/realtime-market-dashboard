@@ -1,8 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
 import { MarketDataService } from '../../core/market-data/market-data.service';
 import { ImbalancePipe } from '../../shared/pipes/imbalance.pipe';
 import { PricePipe } from '../../shared/pipes/price.pipe';
@@ -20,41 +18,23 @@ import { VwapPipe } from '../../shared/pipes/vwap.pipe';
 export class DashboardPage {
   private readonly marketDataService = inject(MarketDataService);
 
-  protected readonly instruments = toSignal(
-    this.marketDataService.instrumentsStore$.pipe(map(({ instruments }) => instruments)),
-  );
-
-  protected readonly runId = toSignal(
-    this.marketDataService.runId$,
-  );
-
-  protected readonly status = toSignal(
-    this.marketDataService.statusStore$.pipe(map(({ status }) => status)),
-  );
-
-  protected readonly error = toSignal(
-    this.marketDataService.statusStore$.pipe(
-      map((status) => {
-        if ('message' in status) return status.message;
-
-        return null;
-      }),
-    ),
-  );
+  protected readonly instruments = this.marketDataService.instruments;
+  protected readonly runId = this.marketDataService.runId;
+  protected readonly status = this.marketDataService.status;
+  protected readonly error = this.marketDataService.error;
 
   protected togglePause(): void {
     switch (this.status()) {
       case 'running':
-        this.marketDataService.pause();
+        this.marketDataService.pauseWorker();
         return;
 
       case 'paused':
-        this.marketDataService.resume();
+        this.marketDataService.resumeWorker();
         return;
 
       case 'starting':
       case 'error':
-      case 'idle':
         return;
     }
   }
