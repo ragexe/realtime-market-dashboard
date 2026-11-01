@@ -60,3 +60,8 @@ export function emptyInstrument(index: number): InstrumentSnapshot {
     notionalCents: 0,
   };
 }
+
+/** One empty row per instrument: symbols from the index, unavailable prices, zero totals */
+export function createEmptyInstruments(count: number): InstrumentSnapshot[] {
+  return Array.from({ length: count }, (_, index) => emptyInstrument(index));
+}

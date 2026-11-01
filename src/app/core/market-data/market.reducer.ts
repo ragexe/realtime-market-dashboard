@@ -1,4 +1,4 @@
-import { emptyInstrument } from '../../../domain/instrument-symbol.utils';
+import { createEmptyInstruments } from '../../../domain/instrument-symbol.utils';
 import type { MarketAction } from './market.actions';
 import { INITIAL_STATE, type MarketState } from './market.state';
 
@@ -12,9 +12,7 @@ export function marketReducer(state: MarketState, action: MarketAction): MarketS
         settings,
         status: 'starting',
         error: INITIAL_STATE.error,
-        instruments: Array.from({ length: settings.instrumentCount }, (_, index) =>
-          emptyInstrument(index),
-        ),
+        instruments: createEmptyInstruments(settings.instrumentCount),
       };
     }
 

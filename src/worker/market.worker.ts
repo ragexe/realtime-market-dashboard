@@ -1,5 +1,11 @@
 /// <reference lib="webworker" />
 
+import type { InstrumentSnapshot } from '../domain/instrument-snapshot.model';
+import { createEmptyInstruments } from '../domain/instrument-symbol.utils';
+import { applyBatchInPlace } from '../domain/market-aggregator.utils';
+import type { MarketGeneratorExports } from '../domain/market-generator.model';
+import { MARKET_UPDATE_FIELD_COUNT } from '../domain/market-update.model';
+import type { ProducerSettings } from '../domain/producer-settings.model';
 import type { RunId } from '../domain/run-id.model';
 import type { WorkerAction } from '../domain/worker-action.model';
 import type {
@@ -7,8 +13,6 @@ import type {
   WorkerSnapshotEvent,
   WorkerStatusEvent,
 } from '../domain/worker-event.model';
-import type { ProducerSettings } from '../domain/producer-settings.model';
-import type { InstrumentSnapshot } from '../domain/instrument-snapshot.model';
 import { createLogger, type LogLevel } from './logger';
 import { loadMarketGenerator } from './market-generator.loader';
 
@@ -22,50 +26,46 @@ const log = createLogger('market.worker', LOG_LEVEL);
 let intervalId: number | null = null;
 let isPaused = false;
 let currentRunId: number;
-
-const MOCK_INSTRUMENTS: () => InstrumentSnapshot[] = () => [
-  {
-    symbol: 'AAPL',
-    lastPriceCents: 10200 * (1 + Math.random() * 0.2 - 0.1),
-    bidCents: 10196 * (1 + Math.random() * 0.2 - 0.1),
-    askCents: 10200 * (1 + Math.random() * 0.2 - 0.1),
-    bidQuantity: 600 * (1 + Math.random() * 0.2 - 0.1),
-    askQuantity: 400 * (1 + Math.random() * 0.2 - 0.1),
-    volume: 40 * (1 + Math.random() * 0.2 - 0.1),
-    notionalCents: 406000 * (1 + Math.random() * 0.2 - 0.1),
-  },
-  {
-    symbol: 'BA',
-    lastPriceCents: null,
-    bidCents: null,
-    askCents: null,
-    bidQuantity: null,
-    askQuantity: null,
-    volume: 0 * (1 + Math.random() * 0.2 - 0.1),
-    notionalCents: 0 * (1 + Math.random() * 0.2 - 0.1),
-  },
-  {
-    symbol: 'C',
-    lastPriceCents: 5010 * (1 + Math.random() * 0.2 - 0.1),
-    bidCents: 5005 * (1 + Math.random() * 0.2 - 0.1),
-    askCents: 5010 * (1 + Math.random() * 0.2 - 0.1),
-    bidQuantity: 0 * (1 + Math.random() * 0.2 - 0.1),
-    askQuantity: 0 * (1 + Math.random() * 0.2 - 0.1),
-    volume: 120 * (1 + Math.random() * 0.2 - 0.1),
-    notionalCents: 601000 * (1 + Math.random() * 0.2 - 0.1),
-  },
-];
+let instruments: InstrumentSnapshot[] | undefined;
+let marketGenerator: MarketGeneratorExports | undefined;
+let batchView: Int32Array<ArrayBuffer> | undefined;
 
 async function startWork({ runId, settings }: { runId: RunId; settings: ProducerSettings }) {
   if (intervalId !== null) return;
 
   isPaused = false;
   currentRunId = runId;
+  instruments = undefined;
+  marketGenerator = undefined;
+  batchView = undefined;
 
   try {
-    await loadMarketGenerator();
+    marketGenerator = await loadMarketGenerator();
     log.debug('generator loaded');
+
+    marketGenerator.init(settings.instrumentCount, 42 /* TODO: Use random value */);
+    instruments = createEmptyInstruments(settings.instrumentCount);
+
+    batchView = new Int32Array(
+      marketGenerator.memory.buffer,
+      marketGenerator.batchPointer(),
+      marketGenerator.maxBatchSize() * MARKET_UPDATE_FIELD_COUNT,
+    );
+
+    const statusMessage: WorkerStatusEvent = {
+      type: 'status',
+      runId: currentRunId,
+      status: isPaused ? 'paused' : 'running',
+    };
+
+    self.postMessage(statusMessage);
   } catch (error) {
+    log.warn(error);
+
+    instruments = undefined;
+    marketGenerator = undefined;
+    batchView = undefined;
+
     const errorMessage: WorkerErrorEvent = {
       type: 'error',
       runId,
@@ -77,48 +77,78 @@ async function startWork({ runId, settings }: { runId: RunId; settings: Producer
     return;
   }
 
-  const statusMessage: WorkerStatusEvent = { status: 'running', type: 'status', runId };
-  self.postMessage(statusMessage);
-
   intervalId = self.setInterval(() => {
     if (isPaused) return;
+    if (!marketGenerator) return;
+    if (!batchView) return;
+    if (!instruments) return;
+
+    try {
+      const count = marketGenerator.generateBatch(settings.updatesPerBatch);
+      applyBatchInPlace(instruments, batchView, count);
+    } catch (error) {
+      log.warn(error);
+
+      // TODO: Remove duplicated code
+      instruments = undefined;
+      marketGenerator = undefined;
+      batchView = undefined;
+      stopTimers();
+
+      const errorMessage: WorkerErrorEvent = {
+        type: 'error',
+        runId,
+        message:
+          error instanceof Error ? error.message : 'Market generator failed to generate batch',
+      };
+
+      self.postMessage(errorMessage);
+
+      return;
+    }
 
     const snapshotMessage: WorkerSnapshotEvent = {
       type: 'snapshot',
       runId,
-      instruments: MOCK_INSTRUMENTS(),
+      instruments,
     };
+
     log.debug('post snapshot');
     self.postMessage(snapshotMessage);
   }, settings.batchIntervalMs);
 }
 
 function pauseWork() {
-  if (!isPaused && intervalId !== null) {
-    isPaused = true;
-    log.debug('paused.');
-    const statusMessage: WorkerStatusEvent = {
-      status: 'paused',
-      type: 'status',
-      runId: currentRunId,
-    };
-    self.postMessage(statusMessage);
-  }
+  if (isPaused) return;
+  isPaused = true;
+  log.debug('paused.');
+
+  if (!marketGenerator) return;
+
+  const statusMessage: WorkerStatusEvent = {
+    type: 'status',
+    runId: currentRunId,
+    status: 'paused',
+  };
+
+  self.postMessage(statusMessage);
 }
 
 function resumeWork() {
-  if (isPaused) {
-    isPaused = false;
-    log.debug('resumed.');
+  if (!isPaused) return;
 
-    const statusMessage: WorkerStatusEvent = {
-      status: 'running',
-      type: 'status',
-      runId: currentRunId,
-    };
+  isPaused = false;
+  log.debug('resumed.');
 
-    self.postMessage(statusMessage);
-  }
+  if (!marketGenerator) return;
+
+  const statusMessage: WorkerStatusEvent = {
+    type: 'status',
+    runId: currentRunId,
+    status: 'running',
+  };
+
+  self.postMessage(statusMessage);
 }
 
 self.addEventListener('message', ({ data }: MessageEvent<WorkerAction>) => {
@@ -145,6 +175,13 @@ self.addEventListener('message', ({ data }: MessageEvent<WorkerAction>) => {
     }
   }
 });
+
+function stopTimers() {
+  if (intervalId !== null) {
+    self.clearInterval(intervalId);
+    intervalId = null;
+  }
+}
 
 // Forces the file to be treated as a module, preventing global type bleeding
 export {};

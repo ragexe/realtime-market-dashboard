@@ -1,4 +1,8 @@
-import { emptyInstrument, instrumentSymbol } from './instrument-symbol.utils';
+import {
+  createEmptyInstruments,
+  emptyInstrument,
+  instrumentSymbol,
+} from './instrument-symbol.utils';
 import { SETTINGS_LIMITS } from './producer-settings.const';
 
 const BASE_LENGTH = 24;
@@ -91,5 +95,35 @@ describe('emptyInstrument', () => {
 
   it('returns a new object every time, so rows never share state', () => {
     expect(emptyInstrument(0)).not.toBe(emptyInstrument(0));
+  });
+});
+
+describe('createEmptyInstruments', () => {
+  it('creates one empty row per instrument, in index order', () => {
+    expect(createEmptyInstruments(3)).toEqual([
+      emptyInstrument(0),
+      emptyInstrument(1),
+      emptyInstrument(2),
+    ]);
+  });
+
+  it('returns no rows for zero instruments', () => {
+    expect(createEmptyInstruments(0)).toEqual([]);
+  });
+
+  it('gives every row its own object, so in-place updates stay isolated', () => {
+    const rows = createEmptyInstruments(3);
+
+    rows[0].volume = 40;
+
+    expect(rows[1].volume).toBe(0);
+    expect(new Set(rows).size).toBe(3);
+  });
+
+  it('uses unique symbols for the largest allowed instrument count', () => {
+    const count = SETTINGS_LIMITS.instrumentCount.max;
+    const symbols = createEmptyInstruments(count).map(({ symbol }) => symbol);
+
+    expect(new Set(symbols).size).toBe(count);
   });
 });
