@@ -3,20 +3,17 @@ export interface MarketGeneratorExports {
   /** Linear memory of the module; the batch buffer lives here */
   readonly memory: WebAssembly.Memory;
 
-  /** Resets the PRNG and creates state for `instrumentCount` instruments; once per run */
-  init(instrumentCount: number, seed: number): void;
+  /** Resets the PRNG, creates state for `instrumentCount` instruments and a buffer for `batchSize` updates; once per run */
+  init(instrumentCount: number, seed: number, batchSize: number): void;
 
-  /** Writes `size` updates into the batch buffer, returns how many were written */
-  generateBatch(size: number): number;
+  /** Fills the whole batch buffer, returns how many updates were written (= `batchSize`) */
+  generateBatch(): number;
 
   /** Byte offset of the batch buffer in `memory`; stable after `init` */
   batchPointer(): number;
 
   /** Number of i32 fields per update in the batch buffer (layout check against the worker) */
   updateFieldCount(): number;
-
-  /** Capacity of the batch buffer, in updates */
-  maxBatchSize(): number;
 }
 
 export function createMarketGeneratorImports(): WebAssembly.Imports {

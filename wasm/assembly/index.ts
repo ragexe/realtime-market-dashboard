@@ -23,11 +23,8 @@ const enum BATCH_LAYOUT {
   UPDATE_FIELD_COUNT = 7,
 }
 
-// TODO: Receive bacth size from worker
-const MAX_BATCH_SIZE: i32 = 1000;
-
-// Allocated once, so the worker can keep a single Int32Array view over it.
-const batch = new StaticArray<i32>(MAX_BATCH_SIZE * BATCH_LAYOUT.UPDATE_FIELD_COUNT);
+let batchSize: i32 = 0;
+let batch = new StaticArray<i32>(0);
 
 const prng = new Xoshiro128Plus();
 
@@ -40,9 +37,14 @@ let spreadCents = new StaticArray<i32>(0);
 let bidQuantity = new StaticArray<i32>(0);
 let askQuantity = new StaticArray<i32>(0);
 
-export function init(count: i32, seed: u32): void {
+export function init(count: i32, seed: u32, size: i32): void {
+  assert(count > 0, 'Instrument count must be positive');
+  assert(size > 0, 'Batch size must be positive');
+
   prng.init(seed);
 
+  batchSize = size;
+  batch = new StaticArray<i32>(size * BATCH_LAYOUT.UPDATE_FIELD_COUNT);
   instrumentCount = count;
   midPriceCents = new StaticArray<i32>(count);
   spreadCents = new StaticArray<i32>(count);
@@ -63,11 +65,9 @@ export function init(count: i32, seed: u32): void {
   }
 }
 
-/** Writes `size` updates into the batch buffer and returns how many were written */
-export function generateBatch(size: i32): i32 {
-  assert(size >= 0 && size <= MAX_BATCH_SIZE, 'Batch size must be within [0, MAX_BATCH_SIZE]');
-
-  for (let index = 0; index < size; index++) {
+/** Fills the whole batch buffer (`size` from init) and returns how many updates were written */
+export function generateBatch(): i32 {
+  for (let index = 0; index < batchSize; index++) {
     // pick an instrument
     const instrument = prng.nextInt(0, instrumentCount - 1);
 
@@ -145,7 +145,7 @@ export function generateBatch(size: i32): i32 {
     );
   }
 
-  return size;
+  return batchSize;
 }
 
 export function batchPointer(): usize {
@@ -154,10 +154,6 @@ export function batchPointer(): usize {
 
 export function updateFieldCount(): i32 {
   return BATCH_LAYOUT.UPDATE_FIELD_COUNT;
-}
-
-export function maxBatchSize(): i32 {
-  return MAX_BATCH_SIZE;
 }
 
 // TODO: replace the 8 same-typed parameters with a class (named fields)?

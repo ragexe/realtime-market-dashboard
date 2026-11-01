@@ -10,8 +10,7 @@ export function applyBatchInPlace(
   batch: Int32Array,
   count: number,
 ): void {
-  // TODO: Add mechanism of syncing batch size
-  const payloadSize = Math.min(count * MARKET_UPDATE_FIELD_COUNT, batch.length);
+  const payloadSize = count * MARKET_UPDATE_FIELD_COUNT;
 
   for (let index = 0; index < payloadSize; index = index + MARKET_UPDATE_FIELD_COUNT) {
     const incomingInstrumentIndex = batch[index + MARKET_UPDATE_FIELD.instrument];

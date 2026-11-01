@@ -11,6 +11,7 @@ import { loadGenerator } from './load-generator';
 
 const SEED = 42;
 const INSTRUMENT_COUNT = 5;
+const BATCH_SIZE = 1000;
 
 function readBatch(generator: MarketGeneratorExports, written: number): MarketUpdate[] {
   const view = new Int32Array(
@@ -22,13 +23,13 @@ function readBatch(generator: MarketGeneratorExports, written: number): MarketUp
   return Array.from({ length: written }, (_, index) => readMarketUpdate(view, index));
 }
 
-function generate(generator: MarketGeneratorExports, size: number): MarketUpdate[] {
-  return readBatch(generator, generator.generateBatch(size));
+function generate(generator: MarketGeneratorExports): MarketUpdate[] {
+  return readBatch(generator, generator.generateBatch());
 }
 
 /** Many updates across several batches, so evolving state is covered too */
-function generateMany(generator: MarketGeneratorExports, batches: number, size: number) {
-  return Array.from({ length: batches }, () => generate(generator, size)).flat();
+function generateMany(generator: MarketGeneratorExports, batches: number) {
+  return Array.from({ length: batches }, () => generate(generator)).flat();
 }
 
 describe('WASM market generator', () => {
@@ -36,7 +37,7 @@ describe('WASM market generator', () => {
 
   beforeEach(async () => {
     generator = await loadGenerator();
-    generator.init(INSTRUMENT_COUNT, SEED);
+    generator.init(INSTRUMENT_COUNT, SEED, BATCH_SIZE);
   });
 
   it('loads from the compiled .wasm file', () => {
@@ -47,30 +48,40 @@ describe('WASM market generator', () => {
     expect(generator.updateFieldCount()).toBe(MARKET_UPDATE_FIELD_COUNT);
   });
 
-  it('has a batch buffer large enough for the allowed settings', () => {
-    expect(generator.maxBatchSize()).toBeGreaterThanOrEqual(SETTINGS_LIMITS.updatesPerBatch.max);
-  });
-
   describe('batch size', () => {
-    it.each([1, 100, SETTINGS_LIMITS.updatesPerBatch.max])(
-      'writes exactly %i requested updates',
+    it.each([SETTINGS_LIMITS.updatesPerBatch.min, 100, SETTINGS_LIMITS.updatesPerBatch.max])(
+      'fills a batch of exactly %i updates set in init',
       (size) => {
-        expect(generator.generateBatch(size)).toBe(size);
+        generator.init(INSTRUMENT_COUNT, SEED, size);
+
+        expect(generator.generateBatch()).toBe(size);
+        expect(generator.generateBatch()).toBe(size);
       },
     );
 
-    it('writes nothing for an empty batch', () => {
-      expect(generator.generateBatch(0)).toBe(0);
+    it('reallocates the buffer when re-initialized with a larger batch', () => {
+      generator.init(INSTRUMENT_COUNT, SEED, 10);
+      generator.init(INSTRUMENT_COUNT, SEED, 5000);
+      const updates = generateMany(generator, 3);
+
+      expect(updates).toHaveLength(15_000);
+      expect(updates.filter(({ instrument }) => instrument >= INSTRUMENT_COUNT)).toEqual([]);
     });
 
-    it.todo('rejects a batch larger than the buffer instead of writing past it');
+    it('rejects a non-positive batch size', () => {
+      expect(() => generator.init(INSTRUMENT_COUNT, SEED, 0)).toThrow(/aborted/);
+    });
+
+    it('rejects a non-positive instrument count', () => {
+      expect(() => generator.init(0, SEED, BATCH_SIZE)).toThrow(/aborted/);
+    });
   });
 
   describe('generated values', () => {
     let updates: MarketUpdate[];
 
     beforeEach(() => {
-      updates = generateMany(generator, 50, 1000);
+      updates = generateMany(generator, 50);
     });
 
     it('only references initialized instruments', () => {
@@ -131,22 +142,22 @@ describe('WASM market generator', () => {
   describe('seed', () => {
     it('produces identical batches for the same seed', async () => {
       const twin = await loadGenerator();
-      twin.init(INSTRUMENT_COUNT, SEED);
+      twin.init(INSTRUMENT_COUNT, SEED, BATCH_SIZE);
 
-      expect(generateMany(twin, 3, 100)).toEqual(generateMany(generator, 3, 100));
+      expect(generateMany(twin, 3)).toEqual(generateMany(generator, 3));
     });
 
     it('produces different batches for different seeds', async () => {
       const other = await loadGenerator();
-      other.init(INSTRUMENT_COUNT, SEED + 1);
+      other.init(INSTRUMENT_COUNT, SEED + 1, BATCH_SIZE);
 
-      expect(generate(other, 100)).not.toEqual(generate(generator, 100));
+      expect(generate(other)).not.toEqual(generate(generator));
     });
   });
 
   it('covers every instrument after re-initialization with a larger count', () => {
-    generator.init(50, SEED);
-    const instruments = new Set(generateMany(generator, 10, 1000).map((u) => u.instrument));
+    generator.init(50, SEED, BATCH_SIZE);
+    const instruments = new Set(generateMany(generator, 10).map((u) => u.instrument));
 
     expect(instruments.size).toBe(50);
   });

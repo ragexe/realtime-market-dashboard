@@ -7,18 +7,21 @@ import { MARKET_UPDATE_FIELD, MARKET_UPDATE_FIELD_COUNT } from '../../domain/mar
  */
 export class FakeMarketGenerator implements MarketGeneratorExports {
   readonly memory = new WebAssembly.Memory({ initial: 1 });
-  readonly initCalls: { instrumentCount: number; seed: number }[] = [];
+  readonly initCalls: { instrumentCount: number; seed: number; batchSize: number }[] = [];
   batchesGenerated = 0;
   failOnBatch: number | null = null;
 
   private instrumentCount = 0;
+  private batchSize = 0;
 
-  init(instrumentCount: number, seed: number): void {
+  init(instrumentCount: number, seed: number, batchSize: number): void {
     this.instrumentCount = instrumentCount;
-    this.initCalls.push({ instrumentCount, seed });
+    this.batchSize = batchSize;
+    this.initCalls.push({ instrumentCount, seed, batchSize });
   }
 
-  generateBatch(size: number): number {
+  generateBatch(): number {
+    const size = this.batchSize;
     this.batchesGenerated++;
     if (this.batchesGenerated === this.failOnBatch) {
       throw new Error('Market generator aborted at 1:1');
@@ -49,9 +52,5 @@ export class FakeMarketGenerator implements MarketGeneratorExports {
 
   updateFieldCount(): number {
     return MARKET_UPDATE_FIELD_COUNT;
-  }
-
-  maxBatchSize(): number {
-    return 1000;
   }
 }

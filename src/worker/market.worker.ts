@@ -17,6 +17,7 @@ createProducer$(commands$, {
   loadGenerator: () => from(loadMarketGenerator()),
   seed: () => crypto.getRandomValues(new Uint32Array(1))[0],
   scheduler: asyncScheduler,
+  logger: createLogger('producer', LOG_LEVEL),
 }).subscribe({
   next: (event: WorkerEvent) => postMessage(event),
   error: (error: unknown) => logger.error('Producer crashed', error),

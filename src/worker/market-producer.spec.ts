@@ -13,6 +13,7 @@ import type { MarketGeneratorExports } from '../domain/market-generator.model';
 import type { ProducerSettings } from '../domain/producer-settings.model';
 import type { WorkerAction } from '../domain/worker-action.model';
 import type { WorkerEvent, WorkerSnapshotEvent } from '../domain/worker-event.model';
+import type { Logger } from './logger';
 import { createProducer$ } from './market-producer';
 import { FakeMarketGenerator } from './testing/fake-market-generator';
 
@@ -29,12 +30,14 @@ describe('createProducer$', () => {
   let commands: Subject<WorkerAction>;
   let received: { time: number; event: WorkerEvent }[];
   let subscription: Subscription | undefined;
+  let logger: Logger;
 
   beforeEach(() => {
     vi.useFakeTimers({ now: 0 });
     generator = new FakeMarketGenerator();
     commands = new Subject();
     received = [];
+    logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
   });
 
   afterEach(() => {
@@ -55,6 +58,7 @@ describe('createProducer$', () => {
       loadGenerator,
       seed: () => SEED,
       scheduler: asyncScheduler,
+      logger,
     }).subscribe((event) => received.push({ time: Date.now(), event }));
   }
 
@@ -80,7 +84,7 @@ describe('createProducer$', () => {
     vi.advanceTimersByTime(50);
 
     expect(timeline()).toEqual(['10 running']);
-    expect(generator.initCalls).toEqual([{ instrumentCount: 2, seed: SEED }]);
+    expect(generator.initCalls).toEqual([{ instrumentCount: 2, seed: SEED, batchSize: 2 }]);
   });
 
   it('emits a snapshot after every batch', () => {
@@ -152,6 +156,7 @@ describe('createProducer$', () => {
         event: { type: 'error', runId: 1, message: 'Market generator failed to load (HTTP 404)' },
       },
     ]);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 
   it('reports an error and stops when generating a batch fails', () => {
@@ -168,6 +173,7 @@ describe('createProducer$', () => {
       message: 'Market generator aborted at 1:1',
     });
     expect(generator.batchesGenerated).toBe(3);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 
   it('emits snapshots as copies of the aggregated state', () => {

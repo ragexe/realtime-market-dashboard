@@ -14,22 +14,22 @@ import {
   switchMap,
   take,
   takeUntil,
+  tap,
   throwError,
   withLatestFrom,
   type Observable,
   type SchedulerLike,
 } from 'rxjs';
 
-import type { MarketGeneratorExports } from '../domain/market-generator.model';
-import type { WorkerAction } from '../domain/worker-action.model';
-import type { WorkerEvent } from '../domain/worker-event.model';
-
 import { InstrumentSnapshot } from '../domain/instrument-snapshot.model';
 import { createEmptyInstruments } from '../domain/instrument-symbol.utils';
 import { applyBatchInPlace } from '../domain/market-aggregator.utils';
+import type { MarketGeneratorExports } from '../domain/market-generator.model';
 import { MARKET_UPDATE_FIELD_COUNT } from '../domain/market-update.model';
 import { ProducerSettings } from '../domain/producer-settings.model';
-import type { WorkerErrorEvent } from '../domain/worker-event.model';
+import type { WorkerAction } from '../domain/worker-action.model';
+import type { WorkerErrorEvent, WorkerEvent } from '../domain/worker-event.model';
+import type { Logger } from './logger';
 
 class LoadGeneratorError extends Error {
   runId: number;
@@ -45,13 +45,17 @@ export interface ProducerDependencies {
   loadGenerator: () => Observable<MarketGeneratorExports>;
   seed: () => number;
   scheduler: SchedulerLike;
+  logger: Logger;
 }
 
 export function createProducer$(
   workerAction$: Observable<WorkerAction>,
-  { loadGenerator, seed, scheduler }: ProducerDependencies,
+  { loadGenerator, seed, scheduler, logger }: ProducerDependencies,
 ): Observable<WorkerEvent> {
   const actions$ = workerAction$.pipe(
+    tap((action) => {
+      logger.debug(`action received: ${action.type}`);
+    }),
     skipWhile((action) => action.type !== 'start'),
     distinctUntilChanged((previous, current) => {
       if (current.type === 'pause') {
@@ -64,6 +68,9 @@ export function createProducer$(
 
       return true;
     }),
+    tap((action) => {
+      logger.debug(`action handled: ${action.type}`);
+    }),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
 
@@ -72,14 +79,17 @@ export function createProducer$(
     take(1),
     switchMap(({ runId, settings }) =>
       loadGenerator().pipe(
+        tap(() => {
+          logger.debug('wasm generator loaded');
+        }),
         map((marketGenerator) => {
-          marketGenerator.init(settings.instrumentCount, seed());
+          marketGenerator.init(settings.instrumentCount, seed(), settings.updatesPerBatch);
           const instruments = createEmptyInstruments(settings.instrumentCount);
 
           const view = new Int32Array(
             marketGenerator.memory.buffer,
             marketGenerator.batchPointer(),
-            marketGenerator.maxBatchSize() * MARKET_UPDATE_FIELD_COUNT,
+            settings.updatesPerBatch * MARKET_UPDATE_FIELD_COUNT,
           );
 
           return {
@@ -90,7 +100,10 @@ export function createProducer$(
             settings,
           } as const;
         }),
-        catchError((error) => throwError(() => new LoadGeneratorError(runId, error))),
+        catchError((error) => {
+          logger.warn(error);
+          return throwError(() => new LoadGeneratorError(runId, error));
+        }),
       ),
     ),
     shareReplay({ bufferSize: 1, refCount: true }),
@@ -120,8 +133,11 @@ export function createProducer$(
       Observable<WorkerEvent>
     >(({ settings, runId, instruments, view, marketGenerator }) =>
       interval(settings.batchIntervalMs, scheduler).pipe(
+        tap(() => {
+          logger.debug(`generate batch...`);
+        }),
         map((): WorkerEvent => {
-          const count = marketGenerator.generateBatch(settings.updatesPerBatch);
+          const count = marketGenerator.generateBatch();
           applyBatchInPlace(instruments, view, count);
 
           return {
@@ -142,6 +158,8 @@ export function createProducer$(
           status: 'paused',
         } as const),
         catchError((error: unknown) => {
+          logger.warn(error);
+
           const event: WorkerErrorEvent = {
             type: 'error',
             runId,
@@ -150,6 +168,9 @@ export function createProducer$(
 
           return of(event);
         }),
+        tap((event) => {
+          logger.debug(`sending event: ${event.type}`);
+        }),
       ),
     ),
     catchError((error: unknown) => {
@@ -157,7 +178,7 @@ export function createProducer$(
         const event: WorkerErrorEvent = {
           type: 'error',
           runId: error.runId,
-          message: 'Market generator failed to load (HTTP 404)',
+          message: error.cause instanceof Error ? error.cause.message : String(error.cause),
         };
 
         return of(event);
