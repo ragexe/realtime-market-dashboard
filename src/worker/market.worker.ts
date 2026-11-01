@@ -9,10 +9,15 @@ import type {
 } from '../domain/worker-event.model';
 import type { ProducerSettings } from '../domain/producer-settings.model';
 import type { InstrumentSnapshot } from '../domain/instrument-snapshot.model';
+import { createLogger, type LogLevel } from './logger';
 import { loadMarketGenerator } from './market-generator.loader';
 
 // Declare self to get proper IntelliSense for DedicatedWorkerGlobalScope
 declare const self: DedicatedWorkerGlobalScope;
+
+/** Raise to 'info' or 'warn' to silence per-snapshot debug output */
+const LOG_LEVEL: LogLevel = 'debug'; // TODO: Raise to `warn` before releasing v1.0.0
+const log = createLogger('market.worker', LOG_LEVEL);
 
 let intervalId: number | null = null;
 let isPaused = false;
@@ -59,8 +64,7 @@ async function startWork({ runId, settings }: { runId: RunId; settings: Producer
 
   try {
     await loadMarketGenerator();
-    // TODO: configurable logger
-    console.debug('[market.worker] generator loaded');
+    log.debug('generator loaded');
   } catch (error) {
     const errorMessage: WorkerErrorEvent = {
       type: 'error',
@@ -84,7 +88,7 @@ async function startWork({ runId, settings }: { runId: RunId; settings: Producer
       runId,
       instruments: MOCK_INSTRUMENTS(),
     };
-    console.debug('[market.worker] post snapshot');
+    log.debug('post snapshot');
     self.postMessage(snapshotMessage);
   }, settings.batchIntervalMs);
 }
@@ -92,7 +96,7 @@ async function startWork({ runId, settings }: { runId: RunId; settings: Producer
 function pauseWork() {
   if (!isPaused && intervalId !== null) {
     isPaused = true;
-    console.debug('[market.worker] paused.');
+    log.debug('paused.');
     const statusMessage: WorkerStatusEvent = {
       status: 'paused',
       type: 'status',
@@ -105,7 +109,7 @@ function pauseWork() {
 function resumeWork() {
   if (isPaused) {
     isPaused = false;
-    console.debug('[market.worker] resumed.');
+    log.debug('resumed.');
 
     const statusMessage: WorkerStatusEvent = {
       status: 'running',
@@ -118,7 +122,7 @@ function resumeWork() {
 }
 
 self.addEventListener('message', ({ data }: MessageEvent<WorkerAction>) => {
-  console.debug('[market.worker] received', data.type);
+  log.debug('received', data.type);
 
   const commandType = data.type;
 
@@ -137,7 +141,7 @@ self.addEventListener('message', ({ data }: MessageEvent<WorkerAction>) => {
 
     default: {
       const exhaustiveCheck: never = commandType;
-      console.warn(`Unknown command type: ${exhaustiveCheck}`);
+      log.warn(`Unknown command type: ${exhaustiveCheck}`);
     }
   }
 });
