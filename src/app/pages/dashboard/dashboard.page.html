@@ -47,13 +47,19 @@
             {{ row.lastPriceCents | price }}
           </td>
 
-          <td class="numeric">{{ row | spread | price }}</td>
+          @let spread = row | spread;
+          <td class="numeric" [appFlashOnChange]="spread" flashMode="change">
+            {{ spread | price }}
+          </td>
 
           <td class="numeric" [appFlashOnChange]="row.volume" flashMode="change">
             {{ row.volume | quantity }}
           </td>
 
-          <td class="numeric">{{ row | vwap | price }}</td>
+          @let vwap = row | vwap;
+          <td class="numeric" [appFlashOnChange]="vwap">
+            {{ vwap | price }}
+          </td>
 
           @let imbalance = row | imbalance;
           <td

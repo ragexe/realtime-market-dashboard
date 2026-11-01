@@ -74,6 +74,17 @@ describe('FlashOnChangeDirective', () => {
     expect(animate).not.toHaveBeenCalled();
   });
 
+  it('ignores changes below display precision, such as sub-cent VWAP drift', async () => {
+    await setValue(10150.31);
+    await setValue(10150.44);
+
+    expect(animate).not.toHaveBeenCalled();
+
+    await setValue(10151.2);
+
+    expect(animate).toHaveBeenCalledTimes(1);
+  });
+
   it('uses one neutral color in change mode', async () => {
     fixture.componentInstance.mode.set('change');
     await setValue(100);

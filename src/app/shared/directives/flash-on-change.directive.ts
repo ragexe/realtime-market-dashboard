@@ -19,7 +19,8 @@ export class FlashOnChangeDirective {
 
   constructor() {
     effect(() => {
-      const current = this.appFlashOnChange();
+      const value = this.appFlashOnChange();
+      const current = value === null ? null : Math.round(value); // Ignorers sub-cent drift
       const previous = this.previous;
       this.previous = current;
 
