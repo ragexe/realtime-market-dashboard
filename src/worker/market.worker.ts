@@ -58,8 +58,9 @@ async function startWork({ runId, settings }: { runId: RunId; settings: Producer
   currentRunId = runId;
 
   try {
-    const generator = await loadMarketGenerator();
-    console.debug('[market.worker] generator loaded, version', generator.generatorVersion());
+    await loadMarketGenerator();
+    // TODO: configurable logger
+    console.debug('[market.worker] generator loaded');
   } catch (error) {
     const errorMessage: WorkerErrorEvent = {
       type: 'error',
