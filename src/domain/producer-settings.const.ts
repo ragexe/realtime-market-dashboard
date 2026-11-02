@@ -1,4 +1,4 @@
-import { ProducerSettings } from './producer-settings.model';
+import type { ProducerSettings } from './producer-settings.model';
 
 export const DEFAULT_SETTINGS = {
   instrumentCount: 5,

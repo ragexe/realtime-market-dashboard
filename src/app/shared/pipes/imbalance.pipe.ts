@@ -1,6 +1,7 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import type { PipeTransform } from '@angular/core';
+import { Pipe } from '@angular/core';
 
-import { InstrumentSnapshot } from '../../../domain/instrument-snapshot.model';
+import type { InstrumentSnapshot } from '../../../domain/instrument-snapshot.model';
 import { imbalance } from '../../../domain/metric-evaluators.utils';
 
 @Pipe({ name: 'imbalance', pure: true })

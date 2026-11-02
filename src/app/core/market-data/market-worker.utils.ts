@@ -1,5 +1,6 @@
 import { InjectionToken } from '@angular/core';
-import { fromEvent, map, merge, Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { fromEvent, map, merge } from 'rxjs';
 
 import type { WorkerAction } from '../../../domain/worker-action.model';
 import type { WorkerEvent } from '../../../domain/worker-event.model';

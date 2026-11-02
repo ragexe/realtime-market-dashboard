@@ -1,4 +1,4 @@
-import { InstrumentSnapshot } from './instrument-snapshot.model';
+import type { InstrumentSnapshot } from './instrument-snapshot.model';
 
 const BASE = [
   'ALPH',

@@ -1,4 +1,5 @@
-import { computed, inject, Injectable, OnDestroy, signal } from '@angular/core';
+import type { OnDestroy } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, EMPTY, filter, merge, Subject, switchMap, tap } from 'rxjs';
 

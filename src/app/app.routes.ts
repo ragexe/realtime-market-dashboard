@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import type { Routes } from '@angular/router';
 
 import { SettingsPage } from './pages/settings/settings.page';
 import { DashboardPage } from './pages/dashboard/dashboard.page';

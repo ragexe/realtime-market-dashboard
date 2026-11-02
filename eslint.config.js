@@ -34,6 +34,7 @@ module.exports = defineConfig([
       ],
       '@angular-eslint/prefer-on-push-component-change-detection': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-imports': 'error',
     },
   },
   {
@@ -60,6 +61,31 @@ module.exports = defineConfig([
               message: 'Domain must not depend on app or worker code.',
             },
           ],
+        },
+      ],
+    },
+  },
+  {
+    // Compiled by AssemblyScript too: only a plain enum of integer literals
+    files: ['src/domain/market-update-field.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Program > :not(ExportNamedDeclaration)',
+          message: 'Shared with AssemblyScript: only `export enum` is allowed here.',
+        },
+        {
+          selector: 'ExportNamedDeclaration > :not(TSEnumDeclaration)',
+          message: 'Shared with AssemblyScript: only `export enum` is allowed here.',
+        },
+        {
+          selector: 'TSEnumDeclaration[const=true]',
+          message: 'Use a plain enum: `const enum` is unreliable with isolatedModules.',
+        },
+        {
+          selector: 'TSEnumMember:not([initializer.type="Literal"][initializer.raw=/^[0-9]+$/])',
+          message: 'Shared with AssemblyScript: every member needs an explicit integer literal.',
         },
       ],
     },

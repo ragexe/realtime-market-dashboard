@@ -1,4 +1,5 @@
-import { Provider } from '@angular/core';
+import type { Provider } from '@angular/core';
+
 import { FakeMarketWorker } from '../app/core/market-data/testing/fake-market-worker';
 import { MARKET_WORKER_FACTORY } from '../app/core/market-data/market-worker.utils';
 

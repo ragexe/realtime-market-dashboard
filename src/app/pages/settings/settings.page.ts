@@ -9,7 +9,7 @@ import { MatSlider, MatSliderThumb } from '@angular/material/slider';
 import { map } from 'rxjs';
 
 import { SETTINGS_LIMITS } from '../../../domain/producer-settings.const';
-import { ProducerSettings } from '../../../domain/producer-settings.model';
+import type { ProducerSettings } from '../../../domain/producer-settings.model';
 import { MarketDataService } from '../../core/market-data/market-data.service';
 import { integerValidator } from './numeric-validators.utils';
 

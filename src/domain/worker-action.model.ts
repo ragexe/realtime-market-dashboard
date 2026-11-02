@@ -1,5 +1,5 @@
-import { ProducerSettings } from './producer-settings.model';
-import { RunId } from './run-id.model';
+import type { ProducerSettings } from './producer-settings.model';
+import type { RunId } from './run-id.model';
 
 interface WorkerStartAction {
   type: 'start';

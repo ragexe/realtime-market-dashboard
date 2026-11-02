@@ -21,12 +21,12 @@ import {
   type SchedulerLike,
 } from 'rxjs';
 
-import { InstrumentSnapshot } from '../domain/instrument-snapshot.model';
+import type { InstrumentSnapshot } from '../domain/instrument-snapshot.model';
 import { createEmptyInstruments } from '../domain/instrument-symbol.utils';
 import { applyBatchInPlace } from '../domain/market-aggregator.utils';
 import type { MarketGeneratorExports } from '../domain/market-generator.model';
 import { MARKET_UPDATE_FIELD_COUNT } from '../domain/market-update.model';
-import { ProducerSettings } from '../domain/producer-settings.model';
+import type { ProducerSettings } from '../domain/producer-settings.model';
 import type { WorkerAction } from '../domain/worker-action.model';
 import type { WorkerErrorEvent, WorkerEvent } from '../domain/worker-event.model';
 import type { Logger } from './logger';
