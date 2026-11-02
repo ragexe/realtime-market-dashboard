@@ -6,7 +6,7 @@ import { createLogger, type LogLevel } from './logger';
 import { loadMarketGenerator } from './market-generator.loader';
 import { createProducer$ } from './market-producer';
 
-const LOG_LEVEL: LogLevel = 'debug'; // TODO: Raise to `warn` before releasing v1.0.0
+const LOG_LEVEL = 'warn' as const satisfies LogLevel;
 const logger = createLogger('market.worker', LOG_LEVEL);
 
 const commands$ = fromEvent<MessageEvent<WorkerAction>>(self, 'message').pipe(
