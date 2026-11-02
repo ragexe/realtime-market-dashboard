@@ -14,12 +14,6 @@ export class Xoshiro128Plus {
     this.s3 = (seed << 5) | 0x88675123;
   }
 
-  /** Rotate bits left (inline modifier for optimal performance) */
-  @inline
-  private rotateBitsLeft(value: u32, offset: i32): u32 {
-    return (value << offset) | (value >> (32 - offset)); // TODO: Use webAssembly `rotl` instead
-  }
-
   // Core generator: returns an unsigned 32-bit integer [0, 4294967295]
   public nextU32(): u32 {
     const result = this.s0 + this.s3;
@@ -31,7 +25,7 @@ export class Xoshiro128Plus {
     this.s0 ^= this.s3;
 
     this.s2 ^= t;
-    this.s3 = this.rotateBitsLeft(this.s3, 11);
+    this.s3 = rotl<u32>(this.s3, 11);
 
     return result;
   }

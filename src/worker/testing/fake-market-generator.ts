@@ -49,8 +49,4 @@ export class FakeMarketGenerator implements MarketGeneratorExports {
   batchPointer(): number {
     return 0;
   }
-
-  updateFieldCount(): number {
-    return MARKET_UPDATE_FIELD_COUNT;
-  }
 }

@@ -1,3 +1,5 @@
+import { MarketUpdateField } from './market-update-field';
+
 /** One generated market update: a simulated trade plus the current best bid/ask */
 export interface MarketUpdate {
   instrument: number;
@@ -9,19 +11,18 @@ export interface MarketUpdate {
   askQuantity: number;
 }
 
-// TODO: replace MARKET_UPDATE_FIELD and BATCH_LAYOUT (wasm/assembly/index.ts) with one shared enum
-/** Field offsets of an update in the generator batch buffer; mirrors BATCH_LAYOUT in wasm/assembly */
+/** Offsets from the shared MarketUpdateField enum, keyed by MarketUpdate fields */
 export const MARKET_UPDATE_FIELD = {
-  instrument: 0,
-  priceCents: 1,
-  quantity: 2,
-  bidCents: 3,
-  askCents: 4,
-  bidQuantity: 5,
-  askQuantity: 6,
-} as const satisfies Record<keyof MarketUpdate, number>;
+  instrument: MarketUpdateField.Instrument,
+  priceCents: MarketUpdateField.PriceCents,
+  quantity: MarketUpdateField.Quantity,
+  bidCents: MarketUpdateField.BidCents,
+  askCents: MarketUpdateField.AskCents,
+  bidQuantity: MarketUpdateField.BidQuantity,
+  askQuantity: MarketUpdateField.AskQuantity,
+} as const satisfies Record<keyof MarketUpdate, MarketUpdateField>;
 
-export const MARKET_UPDATE_FIELD_COUNT = 7;
+export const MARKET_UPDATE_FIELD_COUNT = MarketUpdateField.Count;
 
 export function readMarketUpdate(batch: Int32Array, index: number): MarketUpdate {
   const offset = index * MARKET_UPDATE_FIELD_COUNT;

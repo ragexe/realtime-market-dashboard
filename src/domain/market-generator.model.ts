@@ -11,9 +11,6 @@ export interface MarketGeneratorExports {
 
   /** Byte offset of the batch buffer in `memory`; stable after `init` */
   batchPointer(): number;
-
-  /** Number of i32 fields per update in the batch buffer (layout check against the worker) */
-  updateFieldCount(): number;
 }
 
 export function createMarketGeneratorImports(): WebAssembly.Imports {

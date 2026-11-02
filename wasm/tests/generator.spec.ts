@@ -44,10 +44,6 @@ describe('WASM market generator', () => {
     expect(generator.memory).toBeInstanceOf(WebAssembly.Memory);
   });
 
-  it('uses the same update layout as the worker', () => {
-    expect(generator.updateFieldCount()).toBe(MARKET_UPDATE_FIELD_COUNT);
-  });
-
   describe('batch size', () => {
     it.each([SETTINGS_LIMITS.updatesPerBatch.min, 100, SETTINGS_LIMITS.updatesPerBatch.max])(
       'fills a batch of exactly %i updates set in init',

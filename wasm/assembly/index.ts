@@ -2,26 +2,7 @@ import { Xoshiro128Plus } from './xoshiro128-plus';
 import { randomLot } from './random-lot.utils';
 import { clamp } from './clamp.utils';
 import { MarketParams } from './market-params';
-
-/**
- * Batch layout: each update is UPDATE_FIELD_COUNT consecutive i32 values in this order.
- * Keep in sync with the worker side (checked by a test via updateFieldCount()).
- *
- * cell:     0  1      2   3      4      5    6  | 7  8     9  10    11    12   13  | 14 ...
- * field:    I  PRICE  Q   BID    ASK    BQ   AQ | I  PRICE Q  BID   ASK   BQ   AQ  | I  ...
- * value:    2  10200  30  10196  10200  600  400| 0  5005  5  5000  5005  120  80  | 4  ...
- *           └──────── deal 0 ──────────────────┘ └──────── deal 1 ────────────────┘ └───...
- */
-const enum BATCH_LAYOUT {
-  FIELD_INSTRUMENT = 0,
-  FIELD_PRICE_CENTS = 1,
-  FIELD_QUANTITY = 2,
-  FIELD_BID_CENTS = 3,
-  FIELD_ASK_CENTS = 4,
-  FIELD_BID_QUANTITY = 5,
-  FIELD_ASK_QUANTITY = 6,
-  UPDATE_FIELD_COUNT = 7,
-}
+import { MarketUpdateField } from '../../src/domain/market-update-field';
 
 let batchSize: i32 = 0;
 let batch = new StaticArray<i32>(0);
@@ -44,7 +25,7 @@ export function init(count: i32, seed: u32, size: i32): void {
   prng.init(seed);
 
   batchSize = size;
-  batch = new StaticArray<i32>(size * BATCH_LAYOUT.UPDATE_FIELD_COUNT);
+  batch = new StaticArray<i32>(size * MarketUpdateField.Count);
   instrumentCount = count;
   midPriceCents = new StaticArray<i32>(count);
   spreadCents = new StaticArray<i32>(count);
@@ -152,11 +133,6 @@ export function batchPointer(): usize {
   return changetype<usize>(batch);
 }
 
-export function updateFieldCount(): i32 {
-  return BATCH_LAYOUT.UPDATE_FIELD_COUNT;
-}
-
-// TODO: replace the 8 same-typed parameters with a class (named fields)?
 function writeUpdate(
   index: i32,
   instrument: i32,
@@ -167,13 +143,13 @@ function writeUpdate(
   bidQty: i32,
   askQty: i32,
 ): void {
-  const offset = index * BATCH_LAYOUT.UPDATE_FIELD_COUNT;
+  const offset = index * MarketUpdateField.Count;
 
-  unchecked((batch[offset + BATCH_LAYOUT.FIELD_INSTRUMENT] = instrument));
-  unchecked((batch[offset + BATCH_LAYOUT.FIELD_PRICE_CENTS] = priceCents));
-  unchecked((batch[offset + BATCH_LAYOUT.FIELD_QUANTITY] = quantity));
-  unchecked((batch[offset + BATCH_LAYOUT.FIELD_BID_CENTS] = bid));
-  unchecked((batch[offset + BATCH_LAYOUT.FIELD_ASK_CENTS] = ask));
-  unchecked((batch[offset + BATCH_LAYOUT.FIELD_BID_QUANTITY] = bidQty));
-  unchecked((batch[offset + BATCH_LAYOUT.FIELD_ASK_QUANTITY] = askQty));
+  unchecked((batch[offset + MarketUpdateField.Instrument] = instrument));
+  unchecked((batch[offset + MarketUpdateField.PriceCents] = priceCents));
+  unchecked((batch[offset + MarketUpdateField.Quantity] = quantity));
+  unchecked((batch[offset + MarketUpdateField.BidCents] = bid));
+  unchecked((batch[offset + MarketUpdateField.AskCents] = ask));
+  unchecked((batch[offset + MarketUpdateField.BidQuantity] = bidQty));
+  unchecked((batch[offset + MarketUpdateField.AskQuantity] = askQty));
 }
