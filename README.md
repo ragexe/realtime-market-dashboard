@@ -1,59 +1,58 @@
-# RealtimeMarketDashboard
+# Realtime Market Dashboard
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.27.
+Angular dashboard for a simulated market feed. A seeded AssemblyScript (Wasm) generator runs in a Web Worker; the worker aggregates trades per instrument and streams snapshots to the UI.
 
-## Development server
+**Demo:** https://ragexe.github.io/realtime-market-dashboard/
 
-To start a local development server, run:
+## Run
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Requires Node 20.19+ / 22.12+.
 
 ```bash
-ng generate component component-name
+npm ci
+npm start          # builds Wasm, serves on http://localhost:4200
+npm test           # Angular unit tests + Wasm generator tests
+npm run build      # production build to dist/
+npm run lint
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Architecture
 
-```bash
-ng generate --help
+```mermaid
+sequenceDiagram
+  participant UI as UI (Angular)
+  participant W as Web Worker (RxJS)
+  participant G as Wasm generator (AssemblyScript)
+  UI->>W: start(runId, settings)
+  W->>G: init(count, seed, batchSize)
+  W-->>UI: status: running
+  loop every batchIntervalMs
+    W->>G: generateBatch()
+    G-->>W: batch in shared memory
+    W-->>UI: snapshot(runId, instruments)
+  end
+  UI->>W: pause / resume
+  W-->>UI: status: paused / running
 ```
 
-## Building
+- **Wasm generator** (`wasm/assembly`): xoshiro128+ PRNG, random walk per instrument; writes a batch of updates into linear memory, read by the worker through an `Int32Array` view.
+- **Worker** (`src/worker`): `createProducer$` turns commands into events: loads the generator, folds each batch into per-instrument totals, emits a snapshot after every batch.
+- **UI** (`src/app`): `MarketDataService` holds state (signal + reducer), owns the worker and drops events of stale runs; pages are Dashboard and Settings.
+- **Domain** (`src/domain`): framework-free models and pure functions shared by UI and worker. The batch layout enum is shared with AssemblyScript.
 
-To build the project run:
+## Decisions
 
-```bash
-ng build
-```
+- Metrics (last, spread, volume, VWAP, imbalance) are computed from cumulative totals; prices are integer cents, rounded only for display.
+- Each Apply starts a new run with a new worker; every event carries a `runId`, so late events of a previous run are ignored.
+- Pause stops generation in the worker; resume continues without catching up.
+- No snapshot throttling: one snapshot per batch.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Possible improvements
 
-## Running unit tests
+- Throttle snapshots in the worker (`auditTime`) for high batch rates.
+- Virtual scroll and row-level deltas for thousands of instruments.
+- Transferable `Float64Array` snapshots instead of object arrays.
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Credits
 
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Favicon by [Icons8](https://icons8.com).
