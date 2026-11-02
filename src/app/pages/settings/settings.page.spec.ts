@@ -1,5 +1,6 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { SettingsPage } from './settings.page';
 
@@ -15,12 +16,14 @@ describe('Settings', () => {
   let component: SettingsPage;
   let fixture: ComponentFixture<SettingsPage>;
   let host: HTMLElement;
+  let openSnackBar: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SettingsPage],
     }).compileComponents();
 
+    openSnackBar = vi.spyOn(TestBed.inject(MatSnackBar), 'open');
     fixture = TestBed.createComponent(SettingsPage);
     component = fixture.componentInstance;
     host = fixture.nativeElement;
@@ -129,6 +132,16 @@ describe('Settings', () => {
       });
     });
 
+    it('confirms the new run in a snack bar', async () => {
+      await submit();
+
+      expect(openSnackBar).toHaveBeenCalledExactlyOnceWith(
+        'Settings applied: run #2 started',
+        'OK',
+        { duration: 2000 },
+      );
+    });
+
     it('keeps previous settings and reveals errors when the form is invalid', async () => {
       input('updatesPerBatch').value = '0';
       input('updatesPerBatch').dispatchEvent(new Event('input'));
@@ -141,6 +154,7 @@ describe('Settings', () => {
 
       expect(appliedSettings().updatesPerBatch).toBe(100);
       expect(errorText('updatesPerBatch')).toBe('Allowed range: 1–1000');
+      expect(openSnackBar).not.toHaveBeenCalled();
     });
   });
 });

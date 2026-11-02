@@ -6,6 +6,7 @@ import { MatButton } from '@angular/material/button';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
 import { MatSlider, MatSliderThumb } from '@angular/material/slider';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { map } from 'rxjs';
 
 import { SETTINGS_LIMITS } from '../../../domain/producer-settings.const';
@@ -39,6 +40,7 @@ const FIELDS = [
 export class SettingsPage {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly marketDataService = inject(MarketDataService);
+  private readonly snackBar = inject(MatSnackBar);
 
   protected readonly appliedSettings = this.marketDataService.settings;
   protected readonly fields = FIELDS;
@@ -89,6 +91,10 @@ export class SettingsPage {
     }
 
     this.marketDataService.applySettings(this.form.getRawValue());
+
+    this.snackBar.open(`Settings applied: run #${this.marketDataService.runId()} started`, 'OK', {
+      duration: 2000,
+    });
   }
 
   private computeNominalRate(): number | null {

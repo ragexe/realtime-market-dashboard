@@ -92,7 +92,7 @@
     border-top: 1px solid var(--mat-sys-outline-variant);
   }
 
-  tbody tr:hover:not(.empty) > * {
+  tbody tr:hover > * {
     background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
   }
 
@@ -111,10 +111,5 @@
     &.negative {
       color: var(--negative);
     }
-  }
-
-  .empty {
-    text-align: center;
-    color: var(--mat-sys-on-surface-variant);
   }
 }
